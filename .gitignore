@@ -52,3 +52,7 @@ CATKIN_IGNORE
 
 # Venv 
 venv/
+
+# ROS useless files
+install/
+log/
