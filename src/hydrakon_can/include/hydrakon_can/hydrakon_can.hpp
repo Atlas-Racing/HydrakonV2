@@ -17,8 +17,8 @@
 #include <hydrakon_can/msg/vehicle_command.hpp>
 #include <hydrakon_can/msg/wheel_speed.hpp>
 
-// #include <sensor_msgs/msg/imu.hpp>
-// #include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
 
 #include "fs-ai_api.h"  // NOLINT(build/include_subdir)
 
@@ -52,8 +52,8 @@ class HydrakonCanInterface : public rclcpp::Node {
   rclcpp::Publisher<hydrakon_can::msg::WheelSpeed>::SharedPtr wheel_speed_pub_;
   rclcpp::Publisher<hydrakon_can::msg::VehicleCommand>::SharedPtr vehicle_command_pub_;
   rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr twist_pub_;
-  // rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
-  // rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr fix_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr fix_pub_;
 
   // ROS service
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr ebs_srv_;
@@ -67,8 +67,8 @@ class HydrakonCanInterface : public rclcpp::Node {
   // FS-AI API structs to store data
   struct fs_ai_api_vcu2ai_struct vcu2ai_data_;  // Data received from the car
   struct fs_ai_api_ai2vcu_struct ai2vcu_data_;  // Data sent to the car
-  // struct fs_ai_api_gps_struct gps_data_;        // GPS received from the car
-  // struct fs_ai_api_imu_struct imu_data_;        // IMU received from the car
+  struct fs_ai_api_gps_struct gps_data_;        // GPS received from the car
+  struct fs_ai_api_imu_struct imu_data_;        // IMU received from the car
 
   // FS-AI API state enums
   fs_ai_api_mission_status_e mission_status_ = fs_ai_api_mission_status_e::MISSION_NOT_SELECTED;
@@ -180,13 +180,13 @@ class HydrakonCanInterface : public rclcpp::Node {
    * Creates an IMU message.
    * @param data received from the CAN bus
    */
-  // sensor_msgs::msg::Imu makeImuMessage(const fs_ai_api_imu_struct &data);
+  sensor_msgs::msg::Imu makeImuMessage(const fs_ai_api_imu_struct &data);
 
   /**
    * Creates a GPS message.
    * @param data received from the CAN bus
    */
-  // sensor_msgs::msg::NavSatFix makeGpsMessage(const fs_ai_api_gps_struct &data);
+  sensor_msgs::msg::NavSatFix makeGpsMessage(const fs_ai_api_gps_struct &data);
 
   /**
    * Creates a hydrakon_can/CanState message using the internal state of the car.

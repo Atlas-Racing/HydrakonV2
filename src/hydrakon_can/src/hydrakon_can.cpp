@@ -44,8 +44,8 @@ HydrakonCanInterface::HydrakonCanInterface() : Node("hydrakon_can") {
   wheel_speed_pub_ = this->create_publisher<hydrakon_can::msg::WheelSpeed>("/hydrakon_can/wheel_speed", 1);
   vehicle_command_pub_ = this->create_publisher<hydrakon_can::msg::VehicleCommand>("/hydrakon_can/vehicle_command", 1);
   twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("/hydrakon_can/twist", 1);
-  // imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/hydrakon_can/imu", 1);
-  // fix_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("/hydrakon_can/fix", 1);
+  imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/hydrakon_can/imu", 1);
+  fix_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("/hydrakon_can/fix", 1);
 
   // ROS services
   ebs_srv_ = this->create_service<std_srvs::srv::Trigger>("/hydrakon_can/ebs_request", std::bind(&HydrakonCanInterface::requestEBS, this, _1, _2));
@@ -62,8 +62,8 @@ HydrakonCanInterface::HydrakonCanInterface() : Node("hydrakon_can") {
 void HydrakonCanInterface::loop() {
   // Get fresh data from VCU
   fs_ai_api_vcu2ai_get_data(&vcu2ai_data_);
-  // fs_ai_api_gps_get_data(&gps_data_);
-  // fs_ai_api_imu_get_data(&imu_data_);
+  fs_ai_api_gps_get_data(&gps_data_);
+  fs_ai_api_imu_get_data(&imu_data_);
 
   // Log new data (in one string so log messages don't get separated)
   std::string msg_recv =
@@ -102,8 +102,8 @@ void HydrakonCanInterface::loop() {
   wheel_speed_pub_->publish(HydrakonCanInterface::makeWheelSpeedMessage(vcu2ai_data_));
   twist_pub_->publish(HydrakonCanInterface::makeTwistMessage(vcu2ai_data_));
   vehicle_command_pub_->publish(HydrakonCanInterface::makeVehicleCommandMessage());
-  // fix_pub_->publish(HydrakonCanInterface::makeGpsMessage(gps_data_));
-  // imu_pub_->publish(HydrakonCanInterface::makeImuMessage(imu_data_));
+  fix_pub_->publish(HydrakonCanInterface::makeGpsMessage(gps_data_));
+  imu_pub_->publish(HydrakonCanInterface::makeImuMessage(imu_data_));
 
 
   // vcu2ai_data_.VCU2AI_AMI_STATE = fs_ai_api_ami_state_e::AMI_TRACK_DRIVE; //remove this when done
@@ -375,39 +375,46 @@ geometry_msgs::msg::TwistWithCovarianceStamped HydrakonCanInterface::makeTwistMe
 }
 
 
-// sensor_msgs::msg::Imu HydrakonCanInterface::makeImuMessage(const fs_ai_api_imu_struct &data) {
-//   // Initialise message
-//   sensor_msgs::msg::Imu msg;
-//   msg.header.stamp = this->get_clock()->now();
-//   msg.header.frame_id = "base_footprint";
+sensor_msgs::msg::Imu HydrakonCanInterface::makeImuMessage(const fs_ai_api_imu_struct &data) {
+  // Initialise message
+  sensor_msgs::msg::Imu msg;
+  msg.header.stamp = this->get_clock()->now();
+  msg.header.frame_id = "base_footprint";
 
-//   // Get accelerations
-//   const float G_VALUE = 9.80665;
-//   msg.linear_acceleration.x = data.IMU_Acceleration_X_mG * 1000 * G_VALUE;
-//   msg.linear_acceleration.y = data.IMU_Acceleration_Y_mG * 1000 * G_VALUE;
-//   msg.linear_acceleration.z = data.IMU_Acceleration_Z_mG * 1000 * G_VALUE;
+  // Get accelerations (milli-g to m/s²)
+  const float G_VALUE = 9.80665f;
+  // msg.linear_acceleration.x = data.IMU_Acceleration_X_mG * 1000 * G_VALUE;
+  // msg.linear_acceleration.y = data.IMU_Acceleration_Y_mG * 1000 * G_VALUE;
+  // msg.linear_acceleration.z = data.IMU_Acceleration_Z_mG * 1000 * G_VALUE;
+  msg.linear_acceleration.x = data.IMU_Acceleration_X_mG / 1000.0f * G_VALUE;
+  msg.linear_acceleration.y = data.IMU_Acceleration_Y_mG / 1000.0f * G_VALUE;
+  msg.linear_acceleration.z = data.IMU_Acceleration_Z_mG / 1000.0f * G_VALUE;
 
-//   // Get angular velocity
-//   msg.angular_velocity.x = (data.IMU_Rotation_X_degps / 180) * M_PI;
-//   msg.angular_velocity.y = (data.IMU_Rotation_Y_degps / 180) * M_PI;
-//   msg.angular_velocity.z = (data.IMU_Rotation_Z_degps / 180) * M_PI;
+  // Get angular velocity
+  msg.angular_velocity.x = (data.IMU_Rotation_X_degps / 180) * M_PI;
+  msg.angular_velocity.y = (data.IMU_Rotation_Y_degps / 180) * M_PI;
+  msg.angular_velocity.z = (data.IMU_Rotation_Z_degps / 180) * M_PI;
 
-//   return msg;
-// }
+  return msg;
+}
 
 
-// sensor_msgs::msg::NavSatFix HydrakonCanInterface::makeGpsMessage(const fs_ai_api_gps_struct &data) {
-//   sensor_msgs::msg::NavSatFix msg;
-//   msg.header.stamp = this->get_clock()->now();
-//   msg.header.frame_id = "base_footprint";
+sensor_msgs::msg::NavSatFix HydrakonCanInterface::makeGpsMessage(const fs_ai_api_gps_struct &data) {
+  sensor_msgs::msg::NavSatFix msg;
+  msg.header.stamp = this->get_clock()->now();
+  msg.header.frame_id = "base_footprint";
 
-//   // Double check these with real values
-//   msg.altitude = data.GPS_Altitude;
-//   msg.latitude = data.GPS_Latitude_Degree + data.GPS_Latitude_Minutes / 60;
-//   msg.longitude = data.GPS_Longitude_Degree + data.GPS_Longitude_Minutes / 60;
+  // Double check these with real values
+  msg.altitude = data.GPS_Altitude;
+  // msg.latitude = data.GPS_Latitude_Degree + data.GPS_Latitude_Minutes / 60;
+  // msg.longitude = data.GPS_Longitude_Degree + data.GPS_Longitude_Minutes / 60;
+  double lat = data.GPS_Latitude_Degree + data.GPS_Latitude_Minutes / 60.0;
+  double lon = data.GPS_Longitude_Degree + data.GPS_Longitude_Minutes / 60.0;
+  msg.latitude = (data.GPS_Latitude_IndicatorNS == 'S') ? -lat : lat;
+  msg.longitude = (data.GPS_Longitude_IndicatorEW == 'W') ? -lon : lon;
 
-//   return msg;
-// }
+  return msg;
+}
 
 
 hydrakon_can::msg::CanState HydrakonCanInterface::makeStateMessage(const fs_ai_api_vcu2ai_struct &data) {
