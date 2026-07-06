@@ -34,13 +34,12 @@ class HydrakonCanInterface : public rclcpp::Node {
  public:
   HydrakonCanInterface();  // Constructor
 
-  int loop_rate = 100;  // Operational rate of the node
-
   // Main loop of the node. Gets data from CAN bus. Publishes
   // all info from the car and sends the relevant information to it.
   void loop();
 
  private:
+  int loop_rate = 100;  // Operational rate of the node
   // ROS subscribers
   rclcpp::Subscription<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr cmd_sub_;
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr flag_sub_;
@@ -83,7 +82,7 @@ class HydrakonCanInterface : public rclcpp::Node {
   const float MAX_TORQUE_ = 195;             // Maximum available torque of the car
   const float MAX_RPM_ = 4000;               // Maximum available RPM of the car
   const float MAX_BRAKE_ = 100;              // Maximum available braking of the car
-  const float MAX_STEERING_ANGLE_DEG_ = 24;  // Max steering angle (degrees)
+  const float MAX_STEERING_ANGLE_DEG_ = 21.0f;  // Max steering angle (degrees) — spec v4.0 AI2VCU_Steer range ±21°
   const float WHEEL_RADIUS_ = 0.253;         // Radius of DDT car wheels
   const float WHEELBASE_ = 1.53;             // Wheelbase of the DDT car
   const float TOTAL_MASS_ = 300;            // Total mass of the DDT car in kg
@@ -118,24 +117,24 @@ class HydrakonCanInterface : public rclcpp::Node {
   rclcpp::Time inspection_start_time_;
   rclcpp::Time stage_start_time_;
 
-  /**SS
+  /**
    * Handles the handshake bits and returns the one to be sent back to the car
    * @param data received from the CAN bus
    */
-  fs_ai_api_handshake_send_bit_e getHandshake(const fs_ai_api_vcu2ai_struct data);
+  fs_ai_api_handshake_send_bit_e getHandshake(const fs_ai_api_vcu2ai_struct &data);
 
   /**
    * Process the mission status to be sent to the car.
    * @param data received from the CAN bus
    */
-  fs_ai_api_mission_status_e getMissionStatus(const fs_ai_api_vcu2ai_struct data);
+  fs_ai_api_mission_status_e getMissionStatus(const fs_ai_api_vcu2ai_struct &data);
 
   /**
    * Derive direction request to send to car. Forward if in
    * AS_DRIVING state and driving flag is true, Neutral otherwise.
    * @param data received from the CAN bus
    */
-  fs_ai_api_direction_request_e getDirectionRequest(const fs_ai_api_vcu2ai_struct data);
+  fs_ai_api_direction_request_e getDirectionRequest(const fs_ai_api_vcu2ai_struct &data);
 
   /**
    * Sets torque/brake and steering commands for the car. Converts
@@ -167,14 +166,14 @@ class HydrakonCanInterface : public rclcpp::Node {
    * to SI units and the appropriate convention we are using.
    * @param data received from the CAN bus
    */
-  hydrakon_can::msg::WheelSpeed makeWheelSpeedMessage(const fs_ai_api_vcu2ai_struct data);
+  hydrakon_can::msg::WheelSpeed makeWheelSpeedMessage(const fs_ai_api_vcu2ai_struct &data);
 
   /**
    * Creates a geometry_msgs/TwistWithCovarianceStamped message from wheel speeds
    * @param data received from the CAN bus
    */
   geometry_msgs::msg::TwistWithCovarianceStamped makeTwistMessage(
-      const fs_ai_api_vcu2ai_struct data);
+      const fs_ai_api_vcu2ai_struct &data);
 
   /**
    * Creates an IMU message.

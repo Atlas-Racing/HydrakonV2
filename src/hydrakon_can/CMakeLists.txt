@@ -35,7 +35,7 @@ add_custom_target(fs-ai-api ALL
 
 # Create hydrakon_can_node executable
 include_directories(include include/hydrakon_can/FS-AI_API/FS-AI_API)
-add_executable(hydrakon_can_node src/hydrakon_can.cpp)
+add_executable(hydrakon_can_node src/hydrakon_can.cpp src/inspection_handlers.cpp)
 add_dependencies(hydrakon_can_node fs-ai-api ${PROJECT_NAME})
 target_link_libraries(hydrakon_can_node ${PROJECT_SOURCE_DIR}/include/hydrakon_can/FS-AI_API/FS-AI_API/fs-ai_api.a)
 ament_target_dependencies(hydrakon_can_node rclcpp tf2 tf2_ros std_srvs sensor_msgs std_msgs ackermann_msgs)
