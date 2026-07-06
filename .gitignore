@@ -56,3 +56,7 @@ venv/
 # ROS useless files
 install/
 log/
+
+# Compiled FS-AI_API build artifacts (rebuilt locally per-arch)
+src/hydrakon_can/include/hydrakon_can/FS-AI_API/**/*.o
+src/hydrakon_can/include/hydrakon_can/FS-AI_API/**/*.a
