@@ -10,6 +10,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/config', ['config/cone_detection.yaml']),
+        ('share/' + package_name + '/models',
+            [package_name + '/models/best.onnx']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,6 +27,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'cone_marker_publisher = hydrakon_perception.cone_marker_publisher:main',
         ],
     },
 )

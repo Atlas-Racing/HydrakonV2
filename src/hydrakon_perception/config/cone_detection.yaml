@@ -1,0 +1,117 @@
+# Custom object detection configuration for the ZED SDK native CUSTOM_YOLOLIKE_BOX_OBJECTS
+# pipeline, using our YOLOv26m cone-detection model (best.onnx, 1280x1280 input).
+#
+# Class order/ids must match FS_Cone/yolo_dataset/data.yaml from the
+# atlasracing-perception training repo: [unknown_cone, yellow_cone, blue_cone,
+# orange_cone, large_orange_cone].
+#
+# 'custom_onnx_file' is intentionally left blank here: it is filled in at launch
+# time (see hydrakon_bringup/launch/zedx_bringup.py) with the absolute path to the
+# installed model, since that path depends on the workspace install location.
+
+/**:
+  ros__parameters:
+      object_detection:
+          custom_onnx_file: ''
+          custom_onnx_input_size: 1280
+          custom_class_count: 5
+
+          class_000:
+            label: 'unknown_cone'
+            model_class_id: 0
+            enabled: true
+            confidence_threshold: 50.0
+            is_grounded: true
+            is_static: true
+            tracking_timeout: -1.0
+            tracking_max_dist: -1.0
+            max_box_width_normalized: -1.0
+            min_box_width_normalized: -1.0
+            max_box_height_normalized: -1.0
+            min_box_height_normalized: -1.0
+            max_box_width_meters: -1.0
+            min_box_width_meters: -1.0
+            max_box_height_meters: -1.0
+            min_box_height_meters: -1.0
+            object_acceleration_preset: 'DEFAULT'
+            max_allowed_acceleration: 100000.0
+
+          class_001:
+            label: 'yellow_cone'
+            model_class_id: 1
+            enabled: true
+            confidence_threshold: 50.0
+            is_grounded: true
+            is_static: true
+            tracking_timeout: -1.0
+            tracking_max_dist: -1.0
+            max_box_width_normalized: -1.0
+            min_box_width_normalized: -1.0
+            max_box_height_normalized: -1.0
+            min_box_height_normalized: -1.0
+            max_box_width_meters: -1.0
+            min_box_width_meters: -1.0
+            max_box_height_meters: -1.0
+            min_box_height_meters: -1.0
+            object_acceleration_preset: 'DEFAULT'
+            max_allowed_acceleration: 100000.0
+
+          class_002:
+            label: 'blue_cone'
+            model_class_id: 2
+            enabled: true
+            confidence_threshold: 50.0
+            is_grounded: true
+            is_static: true
+            tracking_timeout: -1.0
+            tracking_max_dist: -1.0
+            max_box_width_normalized: -1.0
+            min_box_width_normalized: -1.0
+            max_box_height_normalized: -1.0
+            min_box_height_normalized: -1.0
+            max_box_width_meters: -1.0
+            min_box_width_meters: -1.0
+            max_box_height_meters: -1.0
+            min_box_height_meters: -1.0
+            object_acceleration_preset: 'DEFAULT'
+            max_allowed_acceleration: 100000.0
+
+          class_003:
+            label: 'orange_cone'
+            model_class_id: 3
+            enabled: true
+            confidence_threshold: 50.0
+            is_grounded: true
+            is_static: true
+            tracking_timeout: -1.0
+            tracking_max_dist: -1.0
+            max_box_width_normalized: -1.0
+            min_box_width_normalized: -1.0
+            max_box_height_normalized: -1.0
+            min_box_height_normalized: -1.0
+            max_box_width_meters: -1.0
+            min_box_width_meters: -1.0
+            max_box_height_meters: -1.0
+            min_box_height_meters: -1.0
+            object_acceleration_preset: 'DEFAULT'
+            max_allowed_acceleration: 100000.0
+
+          class_004:
+            label: 'large_orange_cone'
+            model_class_id: 4
+            enabled: true
+            confidence_threshold: 50.0
+            is_grounded: true
+            is_static: true
+            tracking_timeout: -1.0
+            tracking_max_dist: -1.0
+            max_box_width_normalized: -1.0
+            min_box_width_normalized: -1.0
+            max_box_height_normalized: -1.0
+            min_box_height_normalized: -1.0
+            max_box_width_meters: -1.0
+            min_box_width_meters: -1.0
+            max_box_height_meters: -1.0
+            min_box_height_meters: -1.0
+            object_acceleration_preset: 'DEFAULT'
+            max_allowed_acceleration: 100000.0
