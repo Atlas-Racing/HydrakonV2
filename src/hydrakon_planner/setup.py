@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'hydrakon_bringup'
+package_name = 'hydrakon_planner'
 
 setup(
     name=package_name,
@@ -10,17 +10,12 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', [
-            'launch/zedx_bringup.py',
-            'launch/hydrakon_bringup.py',
-            'launch/corridor_controller_launch.py',
-        ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Atlas Racing',
     maintainer_email='atlasracing@hw.ac.uk',
-    description='TODO: Package description',
+    description='Cone-corridor following controllers for Trackdrive/Autocross',
     license='MIT',
     extras_require={
         'test': [
@@ -29,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'corridor_controller_2d = hydrakon_planner.corridor_controller_2d:main',
+            'corridor_controller_3d = hydrakon_planner.corridor_controller_3d:main',
         ],
     },
 )
