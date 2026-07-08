@@ -3,7 +3,7 @@ Second version of the code deployed on the ADS-DV for FS-AI 2026
 
 ## Workspaces
 
-This repo (`HydrakonV2`) holds `hydrakon_bringup`, `hydrakon_can`, and `hydrakon_perception`.
+This repo (`HydrakonV2`) holds `hydrakon_bringup`, `hydrakon_can`, `hydrakon_perception`, and `hydrakon_planner`.
 
 The ZED SDK wrapper lives in a **separate workspace**, `~/zed_ws`, not in this repo:
 - `zed-ros2-wrapper` — the camera driver (`zed_wrapper`, `zed_components`, `zed_msgs`, ...)
@@ -41,7 +41,30 @@ Currently configured for real hardware (`simulate_can: 0`, `can_interface: can0`
 ros2 launch zed_display_rviz2 display_zed_cam.launch.py camera_model:=zedx start_zed_node:=False
 ```
 
-There is no single top-level launch file combining bringup + CAN yet — run them in separate terminals.
+**Corridor controller — 2D pixel-space or 3D metric-position** (separate terminal, camera + object detection already running):
+```bash
+ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=2d   # or controller_mode:=3d
+```
+- `controller_mode` (default `2d`): `2d` runs `corridor_controller_2d` (pixel bounding-box steering), `3d` runs `corridor_controller_3d` (metric-position steering via `atan2`). They're mutually exclusive — both publish to `/hydrakon_can/command`, don't run both at once.
+- `active_ami_states` (default `TRACKDRIVE,AUTOCROSS`): comma-separated AMI mission names the controller is gated on. It only publishes drive commands while `/hydrakon_can/state_str` reports one of these missions; otherwise it stays silent. Override for an isolated test session, e.g.:
+  ```bash
+  ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=3d active_ami_states:=SKIDPAD
+  ```
+
+There is no single top-level launch file combining bringup + CAN + planner yet — run them in separate terminals.
+
+**Full stack, four terminals:**
+```bash
+# 1
+ros2 launch hydrakon_bringup hydrakon_bringup.py
+# 2
+ros2 launch hydrakon_can hydrakon_can_launch.py
+# 3
+ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=2d
+# 4 (optional, visualization)
+ros2 launch zed_display_rviz2 display_zed_cam.launch.py camera_model:=zedx start_zed_node:=False
+```
+Each terminal needs the sourcing from the top of this file (`ROS Humble` + `zed_ws` are already automatic via `.bashrc`; still run `source ~/HydrakonV2/install/local_setup.bash` in each).
 
 ## Perception: cone detection
 
@@ -57,7 +80,19 @@ There is no single top-level launch file combining bringup + CAN yet — run the
   ros2 launch hydrakon_bringup hydrakon_bringup.py cone_is_static:=false
   ```
 
+## Planning: corridor controllers (Trackdrive/Autocross)
+
+- Package `hydrakon_planner` — ported from last year's `CombinedController`, fixed for the current detection pipeline (was reading `vision_msgs/Detection2DArray` at a stale 1280x720 resolution with a class-ID mapping that no longer matches `cone_detection.yaml`). Both nodes now read `zed_msgs/msg/ObjectsStamped` directly and match cones by `label` string.
+- Two interchangeable implementations, same topics in/out:
+  - `corridor_controller_2d` — finds the closest yellow/blue cone by pixel bounding box (native 1920x1200 ZED X resolution), steers toward the midpoint in pixel space.
+  - `corridor_controller_3d` — finds the closest yellow/blue cone by real forward distance (`obj.position`), steers toward the metric midpoint via `atan2`. No pixel-space assumptions.
+- Both subscribe to `/hydrakon_can/state_str` and `/zed/zed_node/obj_det/objects`, publish `ackermann_msgs/msg/AckermannDriveStamped` on `/hydrakon_can/command`, and only do so while gated on an active AMI mission (`active_ami_states` parameter, default `TRACKDRIVE,AUTOCROSS`) — required, since `hydrakon_can`'s EBS watchdog trips if `/hydrakon_can/command` goes silent for >0.5s while driving, so both controllers publish on every detection callback even with zero cones (decayed steering, zero acceleration).
+- **Nothing in here is tuned.** `steering_gain`, separation thresholds, and curvature offsets are carried over from last year's constants with a first-order resolution rescale (1280→1920px) — real values need on-track testing. See code comments in `hydrakon_planner/corridor_controller_2d.py` / `_3d.py` for the exact rationale on each constant.
+- Not implemented: lap counting, mission completion/stop logic, closed-loop speed control (acceleration is one of 4 fixed tiers, not a target-speed loop), fault handling on sustained perception loss (currently just decays to zero rather than requesting EBS), and Skidpad/Acceleration mission controllers.
+
 ## Not yet implemented
 
-- Planning: no package exists yet.
-- A single top-level launch combining `hydrakon_bringup` + `hydrakon_can`.
+- Lap counting, mission completion, and closed-loop speed control in the planner (see above).
+- Skidpad and Acceleration event controllers — only Trackdrive/Autocross are covered.
+- A single top-level launch combining `hydrakon_bringup` + `hydrakon_can` + `hydrakon_planner`.
+- Automated tests for the planner's steering/accel geometry (currently only ament boilerplate — copyright/flake8/pep257 — no logic tests).
