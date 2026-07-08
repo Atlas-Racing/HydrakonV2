@@ -9,8 +9,8 @@ def generate_launch_description():
         parameters=[
             {"use_sim_time": False},
             {"can_debug": 1},
-            {"simulate_can": 1},
-            {"can_interface": "vcan0"},
+            {"simulate_can": 0},
+            {"can_interface": "can0"},
             {"loop_rate": 100}, # keep as int
             {"rpm_limit": 300.0}, # must be float!
             {"max_acc": 5.0},
