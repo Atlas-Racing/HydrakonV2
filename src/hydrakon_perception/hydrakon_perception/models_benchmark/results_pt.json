@@ -1,0 +1,814 @@
+{
+  "backend": "pt",
+  "model_path": "/home/atlasracing/HydrakonV2/src/hydrakon_perception/hydrakon_perception/models_benchmark/best.pt",
+  "device": "cuda:0",
+  "half": false,
+  "imgsz": 1280,
+  "n_images": 100,
+  "warmup": 20,
+  "file_size_mb": 42.13308048248291,
+  "peak_gpu_mem_mb": 407.119140625,
+  "wall_total_s": 15.305361188000461,
+  "records": [
+    {
+      "image": "prom_00243.jpg",
+      "preprocess_ms": 13.674710999111994,
+      "inference_ms": 62.322267000126885,
+      "postprocess_ms": 3.434252999795717,
+      "wall_ms": 102.30491699985578,
+      "n_detections": 9
+    },
+    {
+      "image": "BME_01058.jpg",
+      "preprocess_ms": 9.155746000033105,
+      "inference_ms": 41.03120500076329,
+      "postprocess_ms": 0.8434840001427801,
+      "wall_ms": 74.7476699998515,
+      "n_detections": 27
+    },
+    {
+      "image": "BME_00270.jpg",
+      "preprocess_ms": 9.139554998910171,
+      "inference_ms": 39.273521999348304,
+      "postprocess_ms": 0.8743620001041563,
+      "wall_ms": 70.3198320006777,
+      "n_detections": 46
+    },
+    {
+      "image": "tuwr_00510.jpg",
+      "preprocess_ms": 19.79098899937526,
+      "inference_ms": 66.62678500106267,
+      "postprocess_ms": 0.9077030008484144,
+      "wall_ms": 443.23821000034513,
+      "n_detections": 19
+    },
+    {
+      "image": "bme_00847.jpg",
+      "preprocess_ms": 9.046986000612378,
+      "inference_ms": 36.62400699977297,
+      "postprocess_ms": 0.7917769999039592,
+      "wall_ms": 66.66409299941733,
+      "n_detections": 19
+    },
+    {
+      "image": "bme_00146.jpg",
+      "preprocess_ms": 9.143298999333638,
+      "inference_ms": 40.53159700015385,
+      "postprocess_ms": 0.8715469994058367,
+      "wall_ms": 70.98790599957283,
+      "n_detections": 39
+    },
+    {
+      "image": "amz_00533.jpg",
+      "preprocess_ms": 20.664454999860027,
+      "inference_ms": 75.88588200087543,
+      "postprocess_ms": 0.7761619999655522,
+      "wall_ms": 192.44600499951048,
+      "n_detections": 5
+    },
+    {
+      "image": "BME_01310.jpg",
+      "preprocess_ms": 11.126755000077537,
+      "inference_ms": 40.423733998977696,
+      "postprocess_ms": 0.8014079994609347,
+      "wall_ms": 72.65398100025777,
+      "n_detections": 35
+    },
+    {
+      "image": "tuwr_00465.jpg",
+      "preprocess_ms": 19.657175000247662,
+      "inference_ms": 66.9940490006411,
+      "postprocess_ms": 0.813631000710302,
+      "wall_ms": 457.1976930001256,
+      "n_detections": 7
+    },
+    {
+      "image": "BME_00971.jpg",
+      "preprocess_ms": 11.655192998659913,
+      "inference_ms": 40.68985599951702,
+      "postprocess_ms": 0.8268780002254061,
+      "wall_ms": 72.91008700121893,
+      "n_detections": 10
+    },
+    {
+      "image": "tuwr_00125.jpg",
+      "preprocess_ms": 17.72654599881207,
+      "inference_ms": 61.51330600005167,
+      "postprocess_ms": 1.8373890015936922,
+      "wall_ms": 489.5655269992858,
+      "n_detections": 8
+    },
+    {
+      "image": "tuwr_00509.jpg",
+      "preprocess_ms": 17.75748700129043,
+      "inference_ms": 68.72213400129112,
+      "postprocess_ms": 0.8846010005072458,
+      "wall_ms": 444.41704699966067,
+      "n_detections": 15
+    },
+    {
+      "image": "mms_00450.jpg",
+      "preprocess_ms": 16.845751999426284,
+      "inference_ms": 80.42791499974555,
+      "postprocess_ms": 0.8272939994640183,
+      "wall_ms": 121.49300400051288,
+      "n_detections": 8
+    },
+    {
+      "image": "BME_00823.jpg",
+      "preprocess_ms": 15.060711999467458,
+      "inference_ms": 56.480908000594354,
+      "postprocess_ms": 0.8135989992297255,
+      "wall_ms": 109.97008900085348,
+      "n_detections": 5
+    },
+    {
+      "image": "mms_00676.jpg",
+      "preprocess_ms": 13.036938000368536,
+      "inference_ms": 93.25526999964495,
+      "postprocess_ms": 0.8119670001178747,
+      "wall_ms": 115.43550600072194,
+      "n_detections": 8
+    },
+    {
+      "image": "gfr_00751.jpg",
+      "preprocess_ms": 14.649032000306761,
+      "inference_ms": 52.588260999982595,
+      "postprocess_ms": 0.8036470007937169,
+      "wall_ms": 103.05042000072717,
+      "n_detections": 22
+    },
+    {
+      "image": "BME_00332.jpg",
+      "preprocess_ms": 9.087173999432707,
+      "inference_ms": 39.947929999470944,
+      "postprocess_ms": 0.8057909999479307,
+      "wall_ms": 70.33691700053168,
+      "n_detections": 37
+    },
+    {
+      "image": "BME_00316.jpg",
+      "preprocess_ms": 9.064679999937653,
+      "inference_ms": 39.95519399904879,
+      "postprocess_ms": 0.9473480004089652,
+      "wall_ms": 69.79779199900804,
+      "n_detections": 18
+    },
+    {
+      "image": "BME_00871.jpg",
+      "preprocess_ms": 9.075559999473626,
+      "inference_ms": 43.387142000938184,
+      "postprocess_ms": 0.8828420013742289,
+      "wall_ms": 74.82404400070664,
+      "n_detections": 18
+    },
+    {
+      "image": "amz_00507.jpg",
+      "preprocess_ms": 20.584075999067863,
+      "inference_ms": 83.00863500153355,
+      "postprocess_ms": 0.8277090000774479,
+      "wall_ms": 193.05724299920257,
+      "n_detections": 35
+    },
+    {
+      "image": "amz_00611.jpg",
+      "preprocess_ms": 15.832586001124582,
+      "inference_ms": 128.87784899976396,
+      "postprocess_ms": 0.8180149998224806,
+      "wall_ms": 198.3558889987762,
+      "n_detections": 2
+    },
+    {
+      "image": "mms_00239.jpg",
+      "preprocess_ms": 16.863511000337894,
+      "inference_ms": 85.98705099939252,
+      "postprocess_ms": 0.8109110003715614,
+      "wall_ms": 129.80427100046654,
+      "n_detections": 7
+    },
+    {
+      "image": "prom_00029.jpg",
+      "preprocess_ms": 13.159392001398373,
+      "inference_ms": 73.57572699947923,
+      "postprocess_ms": 1.0277579985995544,
+      "wall_ms": 107.921131000694,
+      "n_detections": 18
+    },
+    {
+      "image": "BME_00279.jpg",
+      "preprocess_ms": 9.28027900044981,
+      "inference_ms": 38.069553000241285,
+      "postprocess_ms": 0.8350690004590433,
+      "wall_ms": 69.62337299955834,
+      "n_detections": 17
+    },
+    {
+      "image": "mms_00529.jpg",
+      "preprocess_ms": 16.55051200032176,
+      "inference_ms": 82.66475800155604,
+      "postprocess_ms": 0.8749370008445112,
+      "wall_ms": 123.84596500123735,
+      "n_detections": 8
+    },
+    {
+      "image": "amz_00368.jpg",
+      "preprocess_ms": 20.585067999491002,
+      "inference_ms": 87.49956900101097,
+      "postprocess_ms": 0.8245099998021033,
+      "wall_ms": 204.33940799921402,
+      "n_detections": 10
+    },
+    {
+      "image": "tuwr_00338.jpg",
+      "preprocess_ms": 18.928016999780084,
+      "inference_ms": 62.52950900125143,
+      "postprocess_ms": 0.9158949997072341,
+      "wall_ms": 444.11555100123223,
+      "n_detections": 5
+    },
+    {
+      "image": "tuwr_00013.jpg",
+      "preprocess_ms": 13.1160999990243,
+      "inference_ms": 61.82940500002587,
+      "postprocess_ms": 1.8268939984409371,
+      "wall_ms": 99.58688599908783,
+      "n_detections": 7
+    },
+    {
+      "image": "tuwr_00240.jpg",
+      "preprocess_ms": 17.747183001119993,
+      "inference_ms": 76.68750599987106,
+      "postprocess_ms": 0.8089910006674472,
+      "wall_ms": 501.0370590007369,
+      "n_detections": 15
+    },
+    {
+      "image": "ulm_00423.jpg",
+      "preprocess_ms": 13.162431001546793,
+      "inference_ms": 69.0261380004813,
+      "postprocess_ms": 1.1003279996657511,
+      "wall_ms": 106.7492529982701,
+      "n_detections": 1
+    },
+    {
+      "image": "gfr_00714.jpg",
+      "preprocess_ms": 14.994635999755701,
+      "inference_ms": 62.345297999854665,
+      "postprocess_ms": 0.7976319993758807,
+      "wall_ms": 116.14334699879691,
+      "n_detections": 10
+    },
+    {
+      "image": "amz_00519.jpg",
+      "preprocess_ms": 20.619017001081374,
+      "inference_ms": 80.37834700007807,
+      "postprocess_ms": 0.8268130004580598,
+      "wall_ms": 197.9957830008061,
+      "n_detections": 20
+    },
+    {
+      "image": "gfr_00918.jpg",
+      "preprocess_ms": 14.278373999331961,
+      "inference_ms": 67.75545600066835,
+      "postprocess_ms": 1.7576190002728254,
+      "wall_ms": 117.71134999980859,
+      "n_detections": 12
+    },
+    {
+      "image": "mms_00673.jpg",
+      "preprocess_ms": 12.965807000000495,
+      "inference_ms": 81.61882300009893,
+      "postprocess_ms": 1.0378999995737104,
+      "wall_ms": 105.57030799827771,
+      "n_detections": 7
+    },
+    {
+      "image": "bme_00937.jpg",
+      "preprocess_ms": 14.921201998731703,
+      "inference_ms": 58.63449199932802,
+      "postprocess_ms": 3.104327000983176,
+      "wall_ms": 111.42097400079365,
+      "n_detections": 1
+    },
+    {
+      "image": "ulm_00222.jpg",
+      "preprocess_ms": 13.107618999129045,
+      "inference_ms": 67.67878999926324,
+      "postprocess_ms": 0.8387480011151638,
+      "wall_ms": 101.67030200136651,
+      "n_detections": 10
+    },
+    {
+      "image": "BME_00094.jpg",
+      "preprocess_ms": 11.518274999616551,
+      "inference_ms": 42.514410000876524,
+      "postprocess_ms": 0.7913929985079449,
+      "wall_ms": 75.44277399938437,
+      "n_detections": 4
+    },
+    {
+      "image": "tuwr_00581.jpg",
+      "preprocess_ms": 17.73163200050476,
+      "inference_ms": 66.83671300015703,
+      "postprocess_ms": 0.7925769987195963,
+      "wall_ms": 446.50801500029047,
+      "n_detections": 11
+    },
+    {
+      "image": "ulm_00199.jpg",
+      "preprocess_ms": 13.142591998985154,
+      "inference_ms": 69.34851099867956,
+      "postprocess_ms": 1.768657999491552,
+      "wall_ms": 105.68444199998339,
+      "n_detections": 5
+    },
+    {
+      "image": "amz_00059.jpg",
+      "preprocess_ms": 13.029193998590927,
+      "inference_ms": 128.89748899942788,
+      "postprocess_ms": 0.7963839998410549,
+      "wall_ms": 167.89838899967435,
+      "n_detections": 21
+    },
+    {
+      "image": "tuwr_00231.jpg",
+      "preprocess_ms": 17.684851000012713,
+      "inference_ms": 74.2767219999223,
+      "postprocess_ms": 0.8152299997163936,
+      "wall_ms": 468.4890299995459,
+      "n_detections": 3
+    },
+    {
+      "image": "ulm_00394.jpg",
+      "preprocess_ms": 12.828024999180343,
+      "inference_ms": 69.26729999941017,
+      "postprocess_ms": 0.7798410006216727,
+      "wall_ms": 103.9516189994174,
+      "n_detections": 5
+    },
+    {
+      "image": "fsbizkaia_00211.jpg",
+      "preprocess_ms": 14.59661900116771,
+      "inference_ms": 63.06264699924213,
+      "postprocess_ms": 0.8020160003070487,
+      "wall_ms": 115.70699500043702,
+      "n_detections": 6
+    },
+    {
+      "image": "ulm_00282.jpg",
+      "preprocess_ms": 12.783772999682697,
+      "inference_ms": 67.59236300058546,
+      "postprocess_ms": 0.7717459993727971,
+      "wall_ms": 98.37788999902841,
+      "n_detections": 2
+    },
+    {
+      "image": "amz_00028.jpg",
+      "preprocess_ms": 17.08605200110469,
+      "inference_ms": 126.78540100023383,
+      "postprocess_ms": 0.7957119996717665,
+      "wall_ms": 176.31502199947136,
+      "n_detections": 26
+    },
+    {
+      "image": "amz_00490.jpg",
+      "preprocess_ms": 20.597417000317364,
+      "inference_ms": 78.61518900062947,
+      "postprocess_ms": 0.8415000011154916,
+      "wall_ms": 194.5833469999343,
+      "n_detections": 24
+    },
+    {
+      "image": "ugent_00021.jpg",
+      "preprocess_ms": 12.119218001316767,
+      "inference_ms": 129.2482419994485,
+      "postprocess_ms": 0.7954240008984925,
+      "wall_ms": 156.11325099962414,
+      "n_detections": 18
+    },
+    {
+      "image": "fsbizkaia_00200.jpg",
+      "preprocess_ms": 14.800251001361175,
+      "inference_ms": 56.00737300119363,
+      "postprocess_ms": 0.8024630005820654,
+      "wall_ms": 106.98942000090028,
+      "n_detections": 39
+    },
+    {
+      "image": "ulm_00438.jpg",
+      "preprocess_ms": 12.92468999963603,
+      "inference_ms": 59.418298998934915,
+      "postprocess_ms": 0.7935369994811481,
+      "wall_ms": 92.88264999850071,
+      "n_detections": 16
+    },
+    {
+      "image": "BME_00868.jpg",
+      "preprocess_ms": 9.057481000127154,
+      "inference_ms": 39.70769000079599,
+      "postprocess_ms": 0.7687699999223696,
+      "wall_ms": 70.42903000001388,
+      "n_detections": 7
+    },
+    {
+      "image": "fsbizkaia_00507.jpg",
+      "preprocess_ms": 14.597644001696608,
+      "inference_ms": 65.94468600087566,
+      "postprocess_ms": 0.79600000026403,
+      "wall_ms": 116.06917100107239,
+      "n_detections": 8
+    },
+    {
+      "image": "BME_00912.jpg",
+      "preprocess_ms": 9.100901001147577,
+      "inference_ms": 42.67151600106445,
+      "postprocess_ms": 0.9168859996862011,
+      "wall_ms": 74.76992900046753,
+      "n_detections": 16
+    },
+    {
+      "image": "fsbizkaia_00372.jpg",
+      "preprocess_ms": 15.614554000421776,
+      "inference_ms": 57.537840999430045,
+      "postprocess_ms": 0.8256929995695828,
+      "wall_ms": 141.749668000557,
+      "n_detections": 29
+    },
+    {
+      "image": "fsbizkaia_00240.jpg",
+      "preprocess_ms": 14.612905999456416,
+      "inference_ms": 62.30597099965962,
+      "postprocess_ms": 0.8593870006734505,
+      "wall_ms": 115.0707560009323,
+      "n_detections": 28
+    },
+    {
+      "image": "prom_00050.jpg",
+      "preprocess_ms": 13.230553000539658,
+      "inference_ms": 70.5499809992034,
+      "postprocess_ms": 1.068873998519848,
+      "wall_ms": 107.19893999885244,
+      "n_detections": 8
+    },
+    {
+      "image": "bme_00639.jpg",
+      "preprocess_ms": 15.208697999696597,
+      "inference_ms": 61.62173700067797,
+      "postprocess_ms": 0.802463999207248,
+      "wall_ms": 114.53511899890145,
+      "n_detections": 2
+    },
+    {
+      "image": "BME_00446.jpg",
+      "preprocess_ms": 12.75126300060947,
+      "inference_ms": 69.40267999925709,
+      "postprocess_ms": 0.7770259999233531,
+      "wall_ms": 100.107508000292,
+      "n_detections": 9
+    },
+    {
+      "image": "tuwr_00408.jpg",
+      "preprocess_ms": 17.643863000557758,
+      "inference_ms": 68.64827599929413,
+      "postprocess_ms": 0.8003200000530342,
+      "wall_ms": 456.12891699965985,
+      "n_detections": 36
+    },
+    {
+      "image": "gfr_00966.jpg",
+      "preprocess_ms": 13.895427000534255,
+      "inference_ms": 61.524497001300915,
+      "postprocess_ms": 0.8067190010478953,
+      "wall_ms": 110.6508209995809,
+      "n_detections": 12
+    },
+    {
+      "image": "mms_00410.jpg",
+      "preprocess_ms": 16.523599999345606,
+      "inference_ms": 81.30159499887668,
+      "postprocess_ms": 0.8447000000160187,
+      "wall_ms": 123.01619500067318,
+      "n_detections": 21
+    },
+    {
+      "image": "BME_01171.jpg",
+      "preprocess_ms": 14.630408000812167,
+      "inference_ms": 55.352416000459925,
+      "postprocess_ms": 0.7797130001563346,
+      "wall_ms": 105.46077400067588,
+      "n_detections": 15
+    },
+    {
+      "image": "fsbizkaia_00492.jpg",
+      "preprocess_ms": 15.251829998305766,
+      "inference_ms": 53.41711499931989,
+      "postprocess_ms": 0.8190379994630348,
+      "wall_ms": 103.23679200155311,
+      "n_detections": 21
+    },
+    {
+      "image": "BME_00763.jpg",
+      "preprocess_ms": 9.180126000501332,
+      "inference_ms": 38.19709100025648,
+      "postprocess_ms": 0.7855369985918514,
+      "wall_ms": 69.48747100068431,
+      "n_detections": 5
+    },
+    {
+      "image": "mms_00485.jpg",
+      "preprocess_ms": 16.384538999773213,
+      "inference_ms": 81.27586800037534,
+      "postprocess_ms": 0.8196140006475616,
+      "wall_ms": 121.86697399920376,
+      "n_detections": 7
+    },
+    {
+      "image": "bme_01303.jpg",
+      "preprocess_ms": 9.049959999174462,
+      "inference_ms": 39.49420200115128,
+      "postprocess_ms": 0.8232620002672775,
+      "wall_ms": 72.01641999927233,
+      "n_detections": 6
+    },
+    {
+      "image": "prom_00189.jpg",
+      "preprocess_ms": 12.171981999927084,
+      "inference_ms": 59.587850999378134,
+      "postprocess_ms": 0.7712340011494234,
+      "wall_ms": 85.58992199868953,
+      "n_detections": 6
+    },
+    {
+      "image": "prom_00136.jpg",
+      "preprocess_ms": 14.881523999065394,
+      "inference_ms": 55.46859799869708,
+      "postprocess_ms": 0.7720659996266477,
+      "wall_ms": 104.15527699842642,
+      "n_detections": 9
+    },
+    {
+      "image": "fsbizkaia_00392.jpg",
+      "preprocess_ms": 15.491171001485782,
+      "inference_ms": 54.78014099935535,
+      "postprocess_ms": 0.9806250000110595,
+      "wall_ms": 131.77968099989812,
+      "n_detections": 47
+    },
+    {
+      "image": "mms_00610.jpg",
+      "preprocess_ms": 16.515313000127207,
+      "inference_ms": 77.39864399991347,
+      "postprocess_ms": 0.8433879993390292,
+      "wall_ms": 119.06758199984324,
+      "n_detections": 12
+    },
+    {
+      "image": "amz_00342.jpg",
+      "preprocess_ms": 20.677313999840408,
+      "inference_ms": 74.67815800009703,
+      "postprocess_ms": 0.780897000367986,
+      "wall_ms": 185.45066299884638,
+      "n_detections": 5
+    },
+    {
+      "image": "tuwr_00260.jpg",
+      "preprocess_ms": 17.701233000479988,
+      "inference_ms": 68.28494299952581,
+      "postprocess_ms": 0.7760330008750316,
+      "wall_ms": 449.07286200032104,
+      "n_detections": 23
+    },
+    {
+      "image": "BME_00694.jpg",
+      "preprocess_ms": 9.070758998859674,
+      "inference_ms": 35.359685998628265,
+      "postprocess_ms": 0.793119999798364,
+      "wall_ms": 66.94124299974646,
+      "n_detections": 13
+    },
+    {
+      "image": "BME_00454.jpg",
+      "preprocess_ms": 9.140480999121792,
+      "inference_ms": 37.08034699957352,
+      "postprocess_ms": 1.4159820002532797,
+      "wall_ms": 68.18296699930215,
+      "n_detections": 6
+    },
+    {
+      "image": "tuwr_00068.jpg",
+      "preprocess_ms": 12.888946999737527,
+      "inference_ms": 57.329406999997445,
+      "postprocess_ms": 0.8270380003523314,
+      "wall_ms": 92.43004200106952,
+      "n_detections": 2
+    },
+    {
+      "image": "amz_00574.jpg",
+      "preprocess_ms": 20.62381399991864,
+      "inference_ms": 76.49436300016532,
+      "postprocess_ms": 0.772834000599687,
+      "wall_ms": 183.16476399922976,
+      "n_detections": 33
+    },
+    {
+      "image": "ulm_00038.jpg",
+      "preprocess_ms": 12.761214000420296,
+      "inference_ms": 56.51680099981604,
+      "postprocess_ms": 0.8364440000150353,
+      "wall_ms": 89.85514500091085,
+      "n_detections": 8
+    },
+    {
+      "image": "bme_01204.jpg",
+      "preprocess_ms": 9.093828999539255,
+      "inference_ms": 34.6224010008882,
+      "postprocess_ms": 0.792127999375225,
+      "wall_ms": 65.10036700092314,
+      "n_detections": 28
+    },
+    {
+      "image": "BME_00766.jpg",
+      "preprocess_ms": 14.749406000191811,
+      "inference_ms": 52.65019899889012,
+      "postprocess_ms": 0.7820489990990609,
+      "wall_ms": 105.01638999994611,
+      "n_detections": 3
+    },
+    {
+      "image": "ulm_00356.jpg",
+      "preprocess_ms": 12.76281399987056,
+      "inference_ms": 60.94300400036445,
+      "postprocess_ms": 0.7986559994606068,
+      "wall_ms": 95.80250500039256,
+      "n_detections": 17
+    },
+    {
+      "image": "BME_00967.jpg",
+      "preprocess_ms": 8.99735600069107,
+      "inference_ms": 34.71976800028642,
+      "postprocess_ms": 1.5207730011752574,
+      "wall_ms": 65.73500300146407,
+      "n_detections": 47
+    },
+    {
+      "image": "ulm_00210.jpg",
+      "preprocess_ms": 12.756093999996665,
+      "inference_ms": 57.0764029998827,
+      "postprocess_ms": 0.7931840009405278,
+      "wall_ms": 91.10925100139866,
+      "n_detections": 12
+    },
+    {
+      "image": "ulm_00239.jpg",
+      "preprocess_ms": 14.035735001016292,
+      "inference_ms": 55.26512400138017,
+      "postprocess_ms": 0.7947520007292042,
+      "wall_ms": 86.6278510002303,
+      "n_detections": 1
+    },
+    {
+      "image": "gfr_00939.jpg",
+      "preprocess_ms": 13.866564999261755,
+      "inference_ms": 54.990971000734135,
+      "postprocess_ms": 0.8087990008789347,
+      "wall_ms": 101.65390699876298,
+      "n_detections": 13
+    },
+    {
+      "image": "prom_00222.jpg",
+      "preprocess_ms": 12.364924999928917,
+      "inference_ms": 62.92217299960612,
+      "postprocess_ms": 0.9327890002168715,
+      "wall_ms": 92.12855999976455,
+      "n_detections": 5
+    },
+    {
+      "image": "fsbizkaia_00412.jpg",
+      "preprocess_ms": 18.4151909998036,
+      "inference_ms": 75.80139300080191,
+      "postprocess_ms": 0.794720001067617,
+      "wall_ms": 142.26184200015268,
+      "n_detections": 10
+    },
+    {
+      "image": "amz_00072.jpg",
+      "preprocess_ms": 12.685444000453572,
+      "inference_ms": 52.94937500002561,
+      "postprocess_ms": 0.8028159991226858,
+      "wall_ms": 93.3103219995246,
+      "n_detections": 7
+    },
+    {
+      "image": "fsbizkaia_00452.jpg",
+      "preprocess_ms": 14.573260999895865,
+      "inference_ms": 51.869717999579734,
+      "postprocess_ms": 0.8303659997181967,
+      "wall_ms": 100.68713600048795,
+      "n_detections": 27
+    },
+    {
+      "image": "fsbizkaia_00333.jpg",
+      "preprocess_ms": 14.815384998655645,
+      "inference_ms": 54.8464370003785,
+      "postprocess_ms": 0.8218220009439392,
+      "wall_ms": 104.98941399964679,
+      "n_detections": 28
+    },
+    {
+      "image": "amz_00460.jpg",
+      "preprocess_ms": 20.62163799928385,
+      "inference_ms": 76.23975600108679,
+      "postprocess_ms": 0.7891200002632104,
+      "wall_ms": 191.84866800060263,
+      "n_detections": 6
+    },
+    {
+      "image": "tuwr_00106.jpg",
+      "preprocess_ms": 12.771357000019634,
+      "inference_ms": 56.66261100122938,
+      "postprocess_ms": 1.358867000817554,
+      "wall_ms": 94.29779200036137,
+      "n_detections": 6
+    },
+    {
+      "image": "bme_00692.jpg",
+      "preprocess_ms": 14.80159399943659,
+      "inference_ms": 52.641399001004174,
+      "postprocess_ms": 0.7843530001991894,
+      "wall_ms": 102.2036209997168,
+      "n_detections": 2
+    },
+    {
+      "image": "ulm_00310.jpg",
+      "preprocess_ms": 12.942544000907219,
+      "inference_ms": 56.50470399996266,
+      "postprocess_ms": 0.8279009998659603,
+      "wall_ms": 92.12638399912976,
+      "n_detections": 11
+    },
+    {
+      "image": "tuwr_00152.jpg",
+      "preprocess_ms": 17.913663001309033,
+      "inference_ms": 74.68106600026658,
+      "postprocess_ms": 0.8024960006878246,
+      "wall_ms": 487.3333539999294,
+      "n_detections": 6
+    },
+    {
+      "image": "tuwr_00008.jpg",
+      "preprocess_ms": 12.875029000497307,
+      "inference_ms": 66.19083599980513,
+      "postprocess_ms": 0.8474520000163466,
+      "wall_ms": 104.48173999975552,
+      "n_detections": 5
+    },
+    {
+      "image": "BME_00707.jpg",
+      "preprocess_ms": 9.176829998978064,
+      "inference_ms": 44.52979400048207,
+      "postprocess_ms": 0.8255020002252422,
+      "wall_ms": 75.11126999997941,
+      "n_detections": 15
+    },
+    {
+      "image": "prom_00091.jpg",
+      "preprocess_ms": 14.853172999210074,
+      "inference_ms": 64.04048100012005,
+      "postprocess_ms": 0.7894409991422435,
+      "wall_ms": 115.77254400071979,
+      "n_detections": 7
+    },
+    {
+      "image": "ulm_00044.jpg",
+      "preprocess_ms": 12.82869599890546,
+      "inference_ms": 70.45180499881099,
+      "postprocess_ms": 0.8038079995458247,
+      "wall_ms": 103.95694999897387,
+      "n_detections": 5
+    },
+    {
+      "image": "amz_00147.jpg",
+      "preprocess_ms": 12.601995000295574,
+      "inference_ms": 59.05265799992776,
+      "postprocess_ms": 0.7773449997330317,
+      "wall_ms": 96.77746400120668,
+      "n_detections": 10
+    },
+    {
+      "image": "mms_00391.jpg",
+      "preprocess_ms": 17.95007599866949,
+      "inference_ms": 91.93315000084112,
+      "postprocess_ms": 0.8330850014317548,
+      "wall_ms": 134.590998000931,
+      "n_detections": 20
+    },
+    {
+      "image": "tuwr_00406.jpg",
+      "preprocess_ms": 17.774186000679038,
+      "inference_ms": 63.40939499932574,
+      "postprocess_ms": 0.8073909993981943,
+      "wall_ms": 451.00500299849955,
+      "n_detections": 42
+    }
+  ]
+}
