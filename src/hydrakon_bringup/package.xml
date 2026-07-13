@@ -10,6 +10,8 @@
   <exec_depend>zed_wrapper</exec_depend>
   <exec_depend>hydrakon_perception</exec_depend>
   <exec_depend>hydrakon_planner</exec_depend>
+  <exec_depend>greenwave_monitor</exec_depend>
+  <exec_depend>greenwave_monitor_interfaces</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
 
   <test_depend>ament_copyright</test_depend>

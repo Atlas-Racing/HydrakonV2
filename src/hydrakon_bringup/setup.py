@@ -29,6 +29,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'greenwave_auto_discovery = hydrakon_bringup.greenwave_auto_discovery:main',
         ],
     },
 )

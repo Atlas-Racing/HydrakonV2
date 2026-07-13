@@ -50,8 +50,9 @@ qtcreator-*
 # Catkin custom files
 CATKIN_IGNORE
 
-# Venv 
+# Venv
 venv/
+.venvs/
 
 # ROS useless files
 install/

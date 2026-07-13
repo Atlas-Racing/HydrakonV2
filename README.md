@@ -22,13 +22,57 @@ cd ~/HydrakonV2
 colcon build --symlink-install
 ```
 
+## Greenwave Monitor: rich TUI (r2s_gw)
+
+`greenwave_monitor`'s ncurses dashboard works out of the box, but the richer Textual-based TUI, `r2s_gw` (vendored into `src/r2s_gw` from [NVIDIA-ISAAC-ROS/r2s_gw](https://github.com/NVIDIA-ISAAC-ROS/r2s_gw)), needs `numpy>=2.0.1` — incompatible with the `numpy 1.21.5` this workspace's ROS packages (`cv_bridge`, etc.) are built against. Installing it with plain `pip install --user` **breaks `cv_bridge` system-wide** (confirmed: `numpy.ndarray size changed` / `_ARRAY_API not found` errors) since user-site packages shadow the apt-installed numpy for every Python process, not just the TUI.
+
+`src/r2s_gw` therefore carries a `COLCON_IGNORE` marker — a plain `colcon build` skips it — and it's built separately into its own virtualenv so its dependencies never leak into the rest of the workspace:
+
+```bash
+cd ~/HydrakonV2
+python3 -m venv --system-site-packages .venvs/r2s_gw
+.venvs/r2s_gw/bin/pip install --ignore-installed pygments -r src/r2s_gw/requirements.txt
+
+# Build r2s_gw specifically with the venv active, so its console-script
+# entry point's shebang points at the venv's python (plain colcon build
+# would otherwise regenerate it pointing at system python).
+rm -f src/r2s_gw/COLCON_IGNORE
+source .venvs/r2s_gw/bin/activate
+python3 -m colcon build --symlink-install --packages-select r2s_gw
+deactivate
+touch src/r2s_gw/COLCON_IGNORE
+```
+
+`--system-site-packages` lets the venv still see `rclpy` and other ROS Python bindings from `/opt/ros/humble`; only `r2s_gw`'s own deps (`numpy`, `textual`, `rich`, ...) are isolated to the venv. Once built, `source install/local_setup.bash` as usual, then:
+```bash
+ros2 run r2s_gw r2s_gw
+```
+Rebuilding `r2s_gw` after a source change needs the same venv-activated `python3 -m colcon build --packages-select r2s_gw` invocation, not a plain `colcon build`.
+
+## Network: remote topic access via the Deeper Connect Mini
+
+The Jetson's `eno1` port feeds the Deeper Connect Mini and shares the Jetson's WiFi internet connection to it (NetworkManager `ipv4.method shared` on the `eno1` connection profile). The Jetson is `10.42.0.1` on that link; the Deeper Connect Mini DHCPs a WAN address from it and broadcasts its own WiFi network with internet passthrough. The Deeper Connect Mini's admin page is reachable from the Jetson at its current DHCP lease (check `ip neigh show dev eno1`).
+
+Any laptop joining the Deeper Connect Mini's WiFi to see the Jetson's ROS 2 topics must be on the same ROS domain:
+```bash
+export ROS_DOMAIN_ID=0
+```
+
 ## Launching the stack
 
 **Camera + object detection** (ZED X, cone detection, marker publishing):
 ```bash
 ros2 launch hydrakon_bringup hydrakon_bringup.py
 ```
-This includes `zedx_bringup.py` (camera + custom object detection) and starts `cone_marker_publisher`. On the very first run after a fresh model/engine cache, the ZED SDK auto-converts the ONNX model to a TensorRT engine — this is a one-time step and can take **10-20 minutes** at 1280x1280 on Jetson (watch for `Optimizing model: best Progress: X%` in the log). It's cached after that; subsequent launches start immediately.
+This includes `zedx_bringup.py` (camera + custom object detection), starts `cone_marker_publisher`, and starts `greenwave_monitor` (vendored from [NVIDIA-ISAAC-ROS/greenwave_monitor](https://github.com/NVIDIA-ISAAC-ROS/greenwave_monitor) into `src/greenwave_monitor`) for topic rate/latency diagnostics — a faster, always-on alternative to `ros2 topic hz`.
+
+`greenwave_monitor` itself only tracks an explicit topic list (empty by default), so `hydrakon_bringup` also starts `greenwave_auto_discovery` (`src/hydrakon_bringup/hydrakon_bringup/greenwave_auto_discovery.py`), which polls the ROS graph every 2s and registers every topic it finds (except `/rosout`, `/parameter_events`, `/diagnostics`) via `greenwave_monitor`'s `manage_topic` service. **By default every topic is monitored**, including ones like `/zed/zed_node/obj_det/objects` that only appear once object detection finishes starting up. To restrict monitoring to specific topics instead, turn auto-discovery off and pass your own list:
+```bash
+ros2 launch hydrakon_bringup hydrakon_bringup.py gw_monitor_all_topics:=false gw_monitored_topics:='["/zed/zed_node/obj_det/objects", "/cone_markers"]'
+```
+View live rates/latency/status with `ros2 run greenwave_monitor ncurses_dashboard` in another terminal, or with the richer Textual-based TUI, `ros2 run r2s_gw r2s_gw` (see "Greenwave Monitor: rich TUI (r2s_gw)" below for one-time setup).
+
+On the very first run after a fresh model/engine cache, the ZED SDK auto-converts the ONNX model to a TensorRT engine — this is a one-time step and can take **10-20 minutes** at 1280x1280 on Jetson (watch for `Optimizing model: best Progress: X%` in the log). It's cached after that; subsequent launches start immediately.
 
 **CAN interface** (separate terminal):
 ```bash
