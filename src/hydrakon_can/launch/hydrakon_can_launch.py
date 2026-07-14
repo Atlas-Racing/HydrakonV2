@@ -12,7 +12,7 @@ def generate_launch_description():
             {"simulate_can": 0},
             {"can_interface": "can0"},
             {"loop_rate": 100}, # keep as int
-            {"rpm_limit": 300.0}, # must be float!
+            {"rpm_limit": 4000.0}, # must be float!
             {"max_acc": 5.0},
             {"max_braking": 5.0},
             {"cmd_timeout": 0.5}

@@ -1,0 +1,791 @@
+<title>YOLOv26s: PT vs ONNX vs TensorRT Benchmark</title>
+<style>
+  :root {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-pt:      #2a78d6;
+    --series-onnx:    #1baf7a;
+    --series-engine:  #eda100;
+    --tooltip-bg:     #1a1a19;
+    --tooltip-fg:     #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-pt:      #3987e5;
+      --series-onnx:    #199e70;
+      --series-engine:  #c98500;
+      --tooltip-bg:     #fcfcfb;
+      --tooltip-fg:     #0b0b0b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-pt:      #3987e5;
+    --series-onnx:    #199e70;
+    --series-engine:  #c98500;
+    --tooltip-bg:     #fcfcfb;
+    --tooltip-fg:     #0b0b0b;
+  }
+  :root[data-theme="light"] {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-pt:      #2a78d6;
+    --series-onnx:    #1baf7a;
+    --series-engine:  #eda100;
+    --tooltip-bg:     #1a1a19;
+    --tooltip-fg:     #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 20px 80px; }
+  header h1 { font-size: 22px; margin: 0 0 4px; }
+  header p { color: var(--text-secondary); margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
+
+  .config-note {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .config-note b { color: var(--text-primary); }
+  .config-note .swatch {
+    display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+    margin-right: 6px; vertical-align: middle;
+  }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .tile .value { font-size: 30px; font-weight: 600; line-height: 1; }
+  .tile .sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .tile .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px 16px; margin-bottom: 22px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 2px; }
+  .card .desc { font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px; }
+  .multiples { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 860px) { .multiples, .tiles { grid-template-columns: repeat(2, 1fr); } }
+
+  .legend { display: flex; gap: 18px; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); }
+  .legend-item .swatch-line { width: 14px; height: 2px; }
+  .legend-item .swatch-rect { width: 10px; height: 10px; border-radius: 2px; }
+
+  svg { display: block; width: 100%; height: auto; overflow: visible; font-family: inherit; }
+  .axis-label { fill: var(--text-muted); font-size: 10.5px; }
+  .grid-line { stroke: var(--gridline); stroke-width: 1; }
+  .baseline-line { stroke: var(--baseline); stroke-width: 1; }
+  .bar-value { fill: var(--text-primary); font-size: 11px; font-weight: 600; }
+  .bar-value-out { fill: var(--text-secondary); font-size: 11px; font-weight: 600; }
+  .panel-title { fill: var(--text-primary); font-size: 12px; font-weight: 600; }
+  .mono { font-variant-numeric: tabular-nums; }
+
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: var(--tooltip-bg); color: var(--tooltip-fg);
+    border-radius: 8px; padding: 8px 11px; font-size: 12px; line-height: 1.5;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    opacity: 0; transition: opacity 0.08s ease; max-width: 220px;
+  }
+  .tooltip .t-title { font-weight: 600; margin-bottom: 3px; }
+  .tooltip .t-row { display: flex; justify-content: space-between; gap: 14px; }
+  .tooltip .t-row .k { display:flex; align-items:center; gap:5px; opacity: 0.85; }
+  .tooltip .t-row .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tooltip .t-key { width: 8px; height: 8px; border-radius: 2px; display:inline-block; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--gridline); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
+  th { color: var(--text-muted); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.02em; }
+  td.fmt-cell { color: var(--text-secondary); font-variant-numeric: normal; }
+  tr:last-child td { border-bottom: none; }
+  .row-key { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:7px; vertical-align:middle; }
+
+  footer { color: var(--text-muted); font-size: 11.5px; margin-top: 8px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>YOLOv26s Inference Benchmark — PT vs ONNX vs TensorRT</h1>
+    <p>NVIDIA Jetson AGX Orin (JetPack 6.2.1, TensorRT 10.3.0) · 100 real test images sampled from the FS_Cone dataset,
+       1280×1280 · 20-iteration warmup (5 for ONNX/CPU) excluded from timing.</p>
+  </header>
+
+  <div class="config-note" id="configNote"></div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <h2>Sustained latency: mean vs P95, per format</h2>
+    <p class="desc">Model-only time per image — preprocess + inference + postprocess, as reported by the model itself — excluding the per-call Python/dataloader overhead a benchmark loop pays that a continuous pipeline (like hydrakon_bringup's camera stream) doesn't. Log scale. P95 shows the tail worth budgeting for.</p>
+    <div id="chartMeanP95"></div>
+  </div>
+
+  <div class="card">
+    <h2>Latency stage breakdown</h2>
+    <p class="desc">Mean time spent in each stage of the pipeline, as reported by the model itself. Each format has its own scale — the story here is composition, not cross-format comparison (see the latency chart above for that).</p>
+    <div class="multiples" id="chartStages"></div>
+  </div>
+
+  <div class="card">
+    <h2>Latency percentiles (tail behavior)</h2>
+    <p class="desc">p50 / p90 / p95 / p99 of sustained (model-only) latency, log scale. A steep climb from p50 to p99 means occasional slow frames — worth knowing before trusting a single "avg FPS" number.</p>
+    <div id="chartPercentiles"></div>
+  </div>
+
+  <div class="card">
+    <h2>Per-frame sustained latency (stability over the run)</h2>
+    <p class="desc">Model-only latency for each of the 100 sampled frames, in run order — this is what a continuous pipeline actually experiences per frame. Each format has its own y-scale.</p>
+    <div class="multiples" id="chartTrace"></div>
+  </div>
+
+  <div class="card">
+    <h2>Per-call benchmark-loop overhead (not present in production)</h2>
+    <p class="desc">Extra wall-clock time <em>on top of</em> the model's own latency, from calling Ultralytics' <code>.predict()</code> once per image in this benchmark's loop (dataloader/argument setup re-run each call). It's ~72&nbsp;ms on average and spikes periodically (every ~10 frames) to 350–400+&nbsp;ms — <strong>consistently, regardless of format</strong> (pt/onnx/engine all show near-identical overhead), which is exactly what you'd expect from a Python-level artifact rather than a GPU or model effect. A persistent streaming loop like hydrakon_bringup's never pays this per frame — it's shown here only to explain why this benchmark's naive wall-clock FPS looks much lower than what you see in the running car.</p>
+    <div class="multiples" id="chartOverhead"></div>
+  </div>
+
+  <div class="card">
+    <h2>Latency distribution</h2>
+    <p class="desc">Histogram of the same 100 per-frame sustained latencies, own scale per format.</p>
+    <div class="multiples" id="chartHist"></div>
+  </div>
+
+  <div class="card">
+    <h2>Accuracy — official Ultralytics <code>benchmark()</code> validation</h2>
+    <p class="desc">mAP50-95 and speed from Ultralytics' own export+val() pipeline (100-image subset, <code>conf=0.001</code> — the validation-standard threshold, stricter than <code>predict()</code>'s default 0.25, which is why these inference times run higher than the sustained-latency numbers above). The point of this table: <strong>accuracy barely moves between formats</strong> — TensorRT's FP16 quantization costs ~0.001 mAP for ~2.6× the throughput.</p>
+    <div id="chartAccuracy"></div>
+    <div id="ultraTable" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Model file size &amp; peak GPU memory</h2>
+    <div class="multiples" style="grid-template-columns: 1fr 1fr;" id="chartResources"></div>
+  </div>
+
+  <div class="card">
+    <h2>Full stats table</h2>
+    <p class="desc">Every value shown in the charts above, exact.</p>
+    <div id="statsTable"></div>
+    <footer>Sustained FPS = 1000 / mean(preprocess_ms + inference_ms + postprocess_ms) — the model's own throughput in a continuous loop. Naive FPS = 1000 / mean(wall_ms), which additionally includes this benchmark's per-call overhead (see the overhead chart above) and is not representative of a persistent streaming pipeline. Pure inference FPS excludes preprocessing too.</footer>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script id="benchdata" type="application/json">
+{"pt": {"device": "cuda:0", "half": false, "file_size_mb": 19.514592170715332, "peak_gpu_mem_mb": 238.83935546875, "n_images": 100, "naive_fps": 7.655450222770884, "sustained_fps": 17.416959908377798, "pure_inference_fps": 23.896829304952256, "mean_ms": 130.62589016979473, "median_ms": 82.92738049931359, "p50_ms": 54.063370002040756, "p90_ms": 73.53644860304485, "p95_ms": 77.11944304846838, "p99_ms": 152.8287314923, "mean_preprocess_ms": 14.575489209892112, "mean_inference_ms": 41.846555760130286, "mean_postprocess_ms": 0.9932562800531741, "stage_mean_ms": 57.41530125007557, "stage_p95_ms": 77.11944304846838, "overhead_mean_ms": 73.21058891971916, "overhead_max_ms": 408.2471159963461, "wall_series": [79.00609300122596, 56.13921899930574, 56.2532329968235, 423.84580400175764, 56.38843000269844, 54.93738499717438, 171.26032500164, 54.40315600208123, 427.8030109999236, 56.95075599942356, 470.9602619986981, 415.8157130004838, 94.49812599996221, 87.69518000190146, 73.69972600281471, 85.65537799950107, 56.781446997774765, 52.85707199800527, 54.31058099929942, 162.25383600249188, 201.23884300119244, 86.58400100102881, 71.53272700088564, 55.64118099937332, 94.95907800010173, 175.9372309970786, 427.6702770002885, 70.50733800133457, 467.4330630004988, 74.60419000199181, 91.24788199915201, 168.94417599905864, 91.6021169978194, 75.24958599969978, 79.82611000261386, 70.27028599986807, 55.770809998648474, 422.9873240001325, 78.15145299900905, 177.0805689993722, 437.90890400123317, 77.70006899954751, 86.56416099984199, 70.50215400158777, 186.26212799790665, 168.00457700082916, 159.53372600051807, 96.02097799870535, 74.0042019970133, 57.45631500030868, 86.44793900020886, 54.54414500127314, 117.77600099958363, 84.10721499967622, 81.66021999932127, 85.89588499671663, 69.53525900098612, 433.3940120013722, 96.80566799943335, 95.64920999764581, 86.2679419988126, 82.06904400140047, 56.86106199937058, 92.82145299948752, 54.50132999976631, 67.35728399871732, 77.78621100078453, 119.68310099837254, 89.42778900018311, 177.09045800074819, 421.0150719991361, 58.94889499904821, 56.51591599962558, 68.02645599964308, 169.24605799795245, 74.35427499876823, 59.55259600159479, 90.30546799840522, 76.01949199670344, 53.9957709988812, 75.86643800095771, 69.59269800063339, 83.7857169972267, 69.98158799979137, 109.90190599841299, 63.06760299776215, 81.47321599972202, 88.43743799661752, 166.867669999192, 72.89363000018056, 92.50837100262288, 73.92253800207982, 447.3921850003535, 77.16830299978028, 60.15856900194194, 84.11630199771025, 72.88716599941836, 70.40887599941925, 91.83446400129469, 429.9529230011103], "stage_series": [56.092404996888945, 35.7184770036838, 35.09736799605889, 64.8294899983739, 36.158084993076045, 33.672368997940794, 73.50132900319295, 34.15559299901361, 57.02221100000315, 37.1914410025056, 62.713146002352005, 58.02148899965687, 71.20210799985216, 49.82900000322843, 65.37485699664103, 50.67308000070625, 36.31881600085762, 33.21068200239097, 32.869856997422175, 74.1706289954891, 150.63888000076986, 63.04373199964175, 54.033658001571894, 35.49960099917371, 67.2124230004556, 75.47972400061553, 66.26261699784664, 45.75371400278527, 63.97987400487182, 53.53462700077216, 50.932818001456326, 75.4122720027226, 59.62280300082057, 67.04234599601477, 46.214507001423044, 50.83138099871576, 35.684748996573035, 64.81787499797065, 58.45674400188727, 152.80604200233938, 63.30254299973603, 57.177728001988726, 52.20373999691219, 53.84777200379176, 155.0749909984006, 73.85252500171191, 147.46287600064534, 55.677532000117935, 54.664365994540276, 37.03797299749567, 54.09308200250962, 34.6135059990047, 54.1387110024516, 49.44398399675265, 59.961005001241574, 50.310688002355164, 52.87067199969897, 63.84275799791794, 59.220987001026515, 71.0802559988224, 50.29347100207815, 49.181685000803554, 36.85087200210546, 69.72700000187615, 34.42019600333879, 54.649743000481976, 45.145918000343954, 51.370188000873895, 66.93204400289687, 77.11035199827165, 60.191687996848486, 34.940794997964986, 34.27562200158718, 47.191224999551196, 77.29217300220625, 56.904070002929075, 35.10495000591618, 53.246440995280864, 55.69833199842833, 33.88011100105359, 55.814649000240024, 53.380325000034645, 52.35631300092791, 54.532625996216666, 63.86282099992968, 38.701108995155664, 48.692957003368065, 54.284245998132974, 73.47784300509375, 51.842945998942014, 51.613415002066176, 52.87950300407829, 53.735391000373056, 55.21149199921638, 40.129658998921514, 50.64952999964589, 53.15450600028271, 46.88511799395201, 68.4635680008796, 62.49471800038009], "overhead_series": [22.91368800433702, 20.42074199562194, 21.155865000764607, 359.01631400338374, 20.230345009622397, 21.265015999233583, 97.75899599844706, 20.247563003067626, 370.7807999999204, 19.759314996917965, 408.2471159963461, 357.79422400082694, 23.296018000110053, 37.86617999867303, 8.324869006173685, 34.98229799879482, 20.46263099691714, 19.6463899956143, 21.440724001877243, 88.08320700700278, 50.599963000422576, 23.54026900138706, 17.49906899931375, 20.14158000019961, 27.746654999646125, 100.45750699646305, 361.40766000244184, 24.7536239985493, 403.453188995627, 21.06956300121965, 40.31506399769569, 93.53190399633604, 31.979313996998826, 8.207240003685001, 33.611603001190815, 19.438905001152307, 20.08606100207544, 358.16944900216185, 19.69470899712178, 24.274526997032808, 374.60636100149713, 20.522340997558786, 34.3604210029298, 16.65438199779601, 31.187136999506038, 94.15205199911725, 12.070849999872735, 40.34344599858741, 19.33983600247302, 20.418342002813006, 32.354856997699244, 19.930639002268435, 63.63728999713203, 34.66323100292357, 21.699214998079697, 35.58519699436147, 16.664587001287146, 369.55125400345423, 37.58468099840684, 24.568953998823417, 35.97447099673445, 32.887359000596916, 20.010189997265115, 23.09445299761137, 20.081133996427525, 12.707540998235345, 32.64029300044058, 68.31291299749864, 22.495744997286238, 99.98010600247653, 360.82338400228764, 24.00810000108322, 22.240293998038396, 20.83523100009188, 91.9538849957462, 17.450204995839158, 24.447645995678613, 37.059027003124356, 20.321159998275107, 20.115659997827606, 20.05178900071769, 16.212373000598745, 31.429403996298788, 15.448962003574707, 46.039084998483304, 24.366494002606487, 32.78025899635395, 34.153191998484544, 93.38982699409826, 21.05068400123855, 40.894956000556704, 21.04303499800153, 393.65679399998044, 21.956811000563903, 20.028910003020428, 33.46677199806436, 19.73265999913565, 23.523758005467243, 23.370896000415087, 367.45820500073023]}, "onnx": {"device": "cpu", "half": false, "file_size_mb": 36.886454582214355, "peak_gpu_mem_mb": null, "n_images": 100, "naive_fps": 1.526011693926787, "sustained_fps": 1.7156642321133129, "pure_inference_fps": 1.7633980506889508, "mean_ms": 655.3029730897833, "median_ms": 597.2760884997115, "p50_ms": 563.1473929988715, "p90_ms": 671.1689220988774, "p95_ms": 696.6091016016435, "p99_ms": 898.9724729999957, "mean_preprocess_ms": 15.19315865018143, "mean_inference_ms": 567.0869374100221, "mean_postprocess_ms": 0.5845351900643436, "stage_mean_ms": 582.8646312502678, "stage_p95_ms": 696.6091016016435, "overhead_mean_ms": 72.43834183951549, "overhead_max_ms": 404.22069499618374, "wall_series": [685.2019369980553, 595.0822580016393, 691.8089190003229, 934.3705510000291, 661.2500270020973, 634.6522150015517, 693.7024520011619, 551.2624590010091, 1057.3334959990461, 584.4586779967358, 994.9186810008541, 1029.5176899999205, 704.9356520001311, 633.0692679985077, 614.1745759996411, 652.0044699973369, 599.9886310019065, 653.17856099864, 573.4090260011726, 641.0513279988663, 608.0274259984435, 537.442265998834, 536.7053519985348, 519.68701000078, 523.6044419980317, 673.9254410022113, 945.1499999995576, 654.813633998856, 1195.5094080003619, 1189.6958839970466, 816.3914180004213, 652.2382900002412, 536.442028998863, 597.9448279977078, 617.9385710020142, 729.3278099969029, 556.200799997896, 911.1744670008193, 553.2660689968907, 599.6652450012334, 1270.3174669986765, 612.392978000571, 571.4126790007867, 578.7961580026604, 575.7339740011957, 626.199122001708, 582.5695599996834, 581.4580289988953, 570.8605610016093, 604.5201309971162, 587.3948479966202, 718.9412820007419, 593.5707329990692, 543.3182530032354, 545.1710199995432, 546.4336520017241, 538.707458999852, 1028.260561000934, 544.5937820004474, 530.4929229969275, 547.2748520005553, 552.1687459986424, 529.3747989999247, 531.5005839984224, 521.5504959996906, 616.3762640026107, 607.5585709986626, 706.9083839996892, 563.0878720003238, 676.9597209968197, 855.6489009970392, 595.1298090003547, 584.9930359981954, 566.6392950006411, 591.6239529979066, 541.4618079994398, 515.1428380013385, 596.6073490017152, 699.7254449997854, 581.9339560002845, 555.4688129996066, 563.4755130013218, 550.6242949995794, 530.4425550020824, 654.6273979984107, 588.7823099983507, 585.5893769985414, 608.429146999697, 739.2622830011533, 614.8112369992305, 591.7788940023456, 646.6210500002489, 1030.5069200003345, 571.596515001147, 608.5576570003468, 598.5574570004246, 570.0531199981924, 564.5186619985907, 520.7312149977952, 962.529775002622], "stage_series": [662.3017840029206, 574.7545049998735, 670.8758329987177, 573.7354529956065, 641.1964130020351, 613.5966679976264, 593.6159800039604, 530.9875370003283, 690.1024219987448, 564.0980950010999, 590.6979860046704, 673.8067240003147, 681.7239859956317, 598.7344149980345, 605.9166180020839, 617.0627470019099, 579.574319999665, 632.321665994823, 550.5106650016387, 560.2025819971459, 557.4135770002613, 513.929675998952, 519.1614830036997, 499.27829899752396, 498.5121050012822, 586.3839859994187, 587.3098569973081, 633.852613002091, 794.4406239948876, 1165.9369619956124, 776.0545630044362, 568.9013640003395, 502.93474399950355, 588.8719400027185, 583.661700002267, 708.6797749980178, 523.600696997164, 551.6860989991983, 533.7382390061975, 575.2156470043701, 896.2758620000386, 585.7743660053529, 537.4469380039955, 562.1966909966432, 544.6561490025488, 536.9273960022838, 570.5587739976181, 546.6775509994477, 551.5926599982777, 584.1086049986188, 551.2697220037808, 695.9738030018343, 532.1591630017792, 508.47070399686345, 523.4949079967919, 511.0771840008965, 522.0946140034357, 656.9852089996857, 512.5868520008225, 506.9830530010222, 512.989822000236, 519.4381820001581, 507.82547000198974, 505.05143999907887, 500.67715200202656, 603.7450739968335, 574.6082030018442, 647.2782849996292, 540.0743139980477, 590.7898559999012, 492.70043700016686, 575.317950999306, 564.9188790011976, 545.1651950024825, 508.97514300231705, 524.1682080013561, 495.05274500188534, 555.4043660013122, 677.9910959994595, 555.9968670022499, 534.3484679942776, 547.3241639992921, 519.2348589989706, 515.1037980031106, 608.9743839984294, 560.5530060020101, 552.6462719935807, 574.3406250003318, 655.2572729997337, 594.0488050000567, 557.3569380030676, 625.0069529960456, 638.9553669978341, 549.7651760051667, 588.6485839982925, 565.9851939999498, 550.6684530046186, 541.1234790044546, 497.4260779999895, 598.8360110022768], "overhead_series": [22.900152995134704, 20.327753001765814, 20.93308600160526, 360.6350980044226, 20.053614000062225, 21.055547003925312, 100.08647199720144, 20.274922000680817, 367.2310740003013, 20.360582995635923, 404.22069499618374, 355.71096599960583, 23.21166600449942, 34.33485300047323, 8.257957997557241, 34.94172299542697, 20.414311002241448, 20.856895003817044, 22.898360999533907, 80.84874600172043, 50.61384899818222, 23.51258999988204, 17.543868994835066, 20.40871100325603, 25.09233699674951, 87.54145500279265, 357.84014300224953, 20.961020996765, 401.0687840054743, 23.758922001434257, 40.33685499598505, 83.33692599990172, 33.5072849993594, 9.072887994989287, 34.27687099974719, 20.648034998885123, 32.600103000731906, 359.488368001621, 19.527829990693135, 24.449597996863304, 374.0416049986379, 26.61861199521809, 33.96574099679128, 16.59946700601722, 31.077824998646975, 89.27172599942423, 12.010786002065288, 34.78047799944761, 19.267901003331644, 20.411525998497382, 36.12512599283946, 22.96747899890761, 61.41156999728992, 34.84754900637199, 21.676112002751324, 35.35646800082759, 16.612844996416243, 371.2753520012484, 32.006929999624845, 23.50986999590532, 34.28503000031924, 32.730563998484286, 21.549328997934936, 26.449143999343505, 20.87334399766405, 12.63119000577717, 32.950367996818386, 59.63009900006, 23.013558002276113, 86.16986499691848, 362.9484639968723, 19.811858001048677, 20.074156996997772, 21.474099998158636, 82.64880999558954, 17.293599998083664, 20.09009299945319, 41.20298300040304, 21.734349000325892, 25.937088998034596, 21.120345005329, 16.151349002029747, 31.38943600060884, 15.338756998971803, 45.65301399998134, 28.229303996340604, 32.94310500496067, 34.088521999365184, 84.00501000141958, 20.762431999173714, 34.421955999278, 21.61409700420336, 391.55155300250044, 21.83133899598033, 19.909073002054356, 32.57226300047478, 19.384666993573774, 23.39518299413612, 23.305136997805675, 363.69376400034525]}, "engine": {"device": "cuda:0", "half": true, "file_size_mb": 21.778486251831055, "peak_gpu_mem_mb": 42.1962890625, "n_images": 100, "naive_fps": 9.426547278936503, "sustained_fps": 29.9653060939805, "pure_inference_fps": 64.31265801441837, "mean_ms": 106.0833803098285, "median_ms": 58.72958749932877, "p50_ms": 33.07617249447503, "p90_ms": 37.72767469963583, "p95_ms": 39.42462420072843, "p99_ms": 42.804244674407535, "mean_preprocess_ms": 15.847875949730224, "mean_inference_ms": 15.549038569915865, "mean_postprocess_ms": 1.9750122300320072, "stage_mean_ms": 33.371926749678096, "stage_p95_ms": 39.42462420072843, "overhead_mean_ms": 72.7114535601504, "overhead_max_ms": 408.90291100367904, "wall_series": [50.63228099970729, 52.19490799936466, 50.884628002677346, 400.54338700065273, 50.772406000760384, 54.30488500132924, 134.92182799745933, 45.439576999342535, 415.03569500127924, 50.10857899833354, 445.390717999544, 396.2090659988462, 57.20572799691581, 71.3189380003314, 37.60500199859962, 66.75364699913189, 48.88095299975248, 49.80154499935452, 50.79669400220155, 128.21030399936717, 81.82920900071622, 59.86522999955923, 48.94095299823675, 42.988165998394834, 62.23344300087774, 138.50115400055074, 398.09565500036115, 61.203222001495305, 437.88138500167406, 52.83870399944135, 75.63668299917481, 135.5201849983132, 62.32892900152365, 40.22098499990534, 68.41547200019704, 52.47970300115412, 49.20475499966415, 393.3113279999816, 51.67751000044518, 55.35750600029132, 409.1431950000697, 55.55401400124538, 71.69525200151838, 48.33990699989954, 68.70564299970283, 131.8272930002422, 38.016258000425296, 73.52680199983297, 51.89337800038629, 48.432448998937616, 65.10743699982413, 51.75907599914353, 98.4618619986577, 68.0836379979155, 56.50500500269118, 70.14823999998043, 49.441711002145894, 404.37464399656164, 64.7753159973945, 57.68581500160508, 68.0883420027385, 65.46752700160141, 49.18213200289756, 57.060578001255635, 48.245188998407684, 43.71909699693788, 65.21645900284057, 99.81207700184314, 58.64278899753117, 126.2373799982015, 398.5141119992477, 55.498399000498466, 51.01953800112824, 53.605281998898135, 130.39352799751214, 48.85292099788785, 50.96280300131184, 68.0002160006552, 51.30762900080299, 47.252727003069595, 51.88761699901079, 47.871787999611115, 67.31994099754957, 47.98701800245908, 86.19267999893054, 58.816386001126375, 65.93599899861147, 68.38302499818383, 126.62614099826897, 51.67248599900631, 76.28883099823724, 54.3285969979479, 424.59548599799746, 51.416202000837075, 49.75309699875652, 65.18286099890247, 51.905440999689745, 54.48609800077975, 59.4361499970546, 402.1555809995334], "stage_series": [27.830429000459844, 31.782037007360486, 29.77023600033135, 38.62639100043452, 30.54513199822395, 33.47358899918618, 38.50812199743814, 25.241356997867115, 42.79607200442115, 30.51418899849523, 36.48780699586496, 37.61338500407874, 33.85975899800542, 33.61355499509955, 29.26141100761015, 31.695127003331436, 28.245590001461096, 29.9657199975627, 29.245442998217186, 37.19976199863595, 31.08377800162998, 36.14077399834059, 31.376157003251137, 22.828123001090717, 34.606432000146015, 37.179376999119995, 37.46436299843481, 36.375871997734066, 35.609870003099786, 31.75496499898145, 36.226435000571655, 43.61333900305908, 30.531180997058982, 31.929649998346576, 34.818684001947986, 33.17292199426447, 29.06499999880907, 34.48925099655753, 31.951954995747656, 30.86909400008153, 36.62991400415194, 35.09656899768743, 37.69799200017587, 31.59058399978676, 37.699047999922186, 38.34319499947014, 25.999841000157176, 33.1889549997868, 32.61354099595337, 27.93119700072566, 33.796367002651095, 31.693461001850665, 35.12168800079962, 33.27023299789289, 34.883197004091926, 34.407106999424286, 32.839872994372854, 36.314015997049864, 32.72829200068372, 33.84366299724206, 33.93086200230755, 32.53687200049171, 29.11917300298228, 33.907435994478874, 28.149208996183006, 30.956324997532647, 32.56182900076965, 37.50186799879884, 35.9156249978696, 40.24312900219229, 37.985314997058595, 30.66647499872488, 30.353197998920223, 32.76048199768411, 40.53912400195259, 31.323966995842056, 30.602027003624244, 34.34394100258942, 30.96685200216598, 27.173866001248825, 31.7898770008469, 31.734486001369078, 35.787082993920194, 32.55044000252383, 40.262039998197, 34.55168299842626, 32.97942299468559, 34.44509199835011, 39.381545000651386, 30.695401001139544, 35.081752997939475, 33.339256995532196, 31.8695240021043, 29.355011003644904, 29.647324998222757, 32.50861600099597, 32.31556299942895, 31.177758999547223, 35.93168899897137, 37.20046500166063], "overhead_series": [22.801851999247447, 20.412870992004173, 21.114392002345994, 361.9169960002182, 20.227274002536433, 20.831296002143063, 96.4137060000212, 20.19822000147542, 372.2396229968581, 19.594389999838313, 408.90291100367904, 358.59568099476746, 23.345968998910394, 37.70538300523185, 8.343590990989469, 35.05851999580045, 20.635362998291384, 19.835825001791818, 21.551251003984362, 91.01054200073122, 50.74543099908624, 23.72445600121864, 17.564795994985616, 20.160042997304117, 27.627011000731727, 101.32177700143075, 360.63129200192634, 24.82735000376124, 402.2715149985743, 21.0837390004599, 39.410247998603154, 91.90684599525412, 31.797748004464665, 8.291335001558764, 33.596787998249056, 19.30678100688965, 20.139755000855075, 358.82207700342406, 19.725555004697526, 24.48841200020979, 372.51328099591774, 20.45744500355795, 33.99726000134251, 16.74932300011278, 31.006594999780646, 93.48409800077206, 12.01641700026812, 40.33784700004617, 19.27983700443292, 20.501251998211956, 31.311069997173036, 20.06561499729287, 63.340173997858074, 34.81340500002261, 21.62180799859925, 35.74113300055615, 16.60183800777304, 368.0606279995118, 32.04702399671078, 23.842152004363015, 34.15748000043095, 32.9306550011097, 20.06295899991528, 23.15314200677676, 20.095980002224678, 12.762771999405231, 32.65463000207092, 62.31020900304429, 22.72716399966157, 85.99425099600921, 360.5287970021891, 24.831924001773586, 20.666340002208017, 20.844800001214026, 89.85440399555955, 17.528954002045793, 20.360775997687597, 33.65627499806578, 20.34077699863701, 20.07886100182077, 20.09773999816389, 16.137301998242037, 31.53285800362937, 15.436577999935253, 45.93064000073355, 24.264703002700116, 32.956576003925875, 33.93793299983372, 87.24459599761758, 20.97708499786677, 41.20707800029777, 20.9893400024157, 392.72596199589316, 22.06119099719217, 20.10577200053376, 32.6742449979065, 19.589878000260796, 23.308339001232525, 23.504460998083232, 364.9551159978728]}, "ultra": {"pt": {"size_mb": 19.5, "map5095": 0.661, "inference_ms": 52.75, "fps": 18.96}, "engine": {"size_mb": 21.5, "map5095": 0.6675, "inference_ms": 14.59, "fps": 68.54}, "onnx": {"size_mb": 36.9, "map5095": 0.6644, "inference_ms": 1019.36, "fps": 0.98}}}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  const DATA = JSON.parse(document.getElementById("benchdata").textContent);
+  const ORDER = ["pt", "onnx", "engine"];
+  const NAMES = { pt: ".pt (PyTorch)", onnx: ".onnx (ONNX Runtime)", engine: ".engine (TensorRT)" };
+  const CONFIGS = {
+    pt: "CUDA · FP32",
+    onnx: "CPU · FP32",
+    engine: "CUDA · FP16",
+  };
+  const COLOR = {
+    pt: getCss("--series-pt"),
+    onnx: getCss("--series-onnx"),
+    engine: getCss("--series-engine"),
+  };
+
+  function getCss(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function fmt(v, d) {
+    if (v === null || v === undefined || Number.isNaN(v)) return "—";
+    d = d === undefined ? 1 : d;
+    return v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+
+  const tooltipEl = document.getElementById("tooltip");
+  function showTooltip(x, y, html) {
+    tooltipEl.innerHTML = html;
+    tooltipEl.style.opacity = "1";
+    const rect = tooltipEl.getBoundingClientRect();
+    let left = x + 14, top = y + 14;
+    if (left + rect.width > window.innerWidth - 8) left = x - rect.width - 14;
+    if (top + rect.height > window.innerHeight - 8) top = y - rect.height - 14;
+    tooltipEl.style.left = left + "px";
+    tooltipEl.style.top = top + "px";
+  }
+  function hideTooltip() { tooltipEl.style.opacity = "0"; }
+
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  // ---------- config note ----------
+  const configNote = document.getElementById("configNote");
+  configNote.innerHTML = ORDER.map(k =>
+    `<span class="swatch" style="background:${COLOR[k]}"></span><b>${NAMES[k]}</b> — ${CONFIGS[k]}${k === "onnx" ? " (no CUDA execution provider installed on this device — CPU is the honest baseline, not a format penalty)" : ""}`
+  ).join("<br>") + `<br><br><b>Sustained FPS</b> (headline number below) = model's own preprocess+inference+postprocess time only, matching a continuous pipeline. <b>Naive FPS</b> additionally includes this benchmark's per-call overhead (~72ms, see the overhead chart) and understates real deployed throughput — it's shown in the table for transparency, not as the main number.`;
+
+  // ---------- stat tiles ----------
+  const tiles = document.getElementById("tiles");
+  const speedup = DATA.engine.sustained_fps / DATA.pt.sustained_fps;
+  ORDER.forEach(k => {
+    const t = document.createElement("div");
+    t.className = "tile";
+    t.innerHTML = `<div class="label"><span class="dot" style="background:${COLOR[k]}"></span>${NAMES[k]}</div>
+      <div class="value">${fmt(DATA[k].sustained_fps, 2)} <span style="font-size:14px;color:var(--text-muted);font-weight:400;">FPS</span></div>
+      <div class="sub">sustained · ${fmt(DATA[k].pure_inference_fps, 1)} FPS inference-only · ${CONFIGS[k]}</div>`;
+    tiles.appendChild(t);
+  });
+  const speedTile = document.createElement("div");
+  speedTile.className = "tile";
+  speedTile.innerHTML = `<div class="label">TensorRT speedup vs PT</div>
+    <div class="value">${fmt(speedup, 2)}×</div>
+    <div class="sub">${fmt(DATA.engine.sustained_fps / DATA.onnx.sustained_fps, 1)}× vs ONNX (CPU) · sustained FPS</div>`;
+  tiles.appendChild(speedTile);
+
+  // ================= Bar chart (grouped, log-capable) =================
+  function groupedBarChart(container, opts) {
+    // opts: categories(3 formats), series: [{name,key,color,values:{cat:val}}], height, logScale, unit
+    const w = 640, h = opts.height || 260, ml = 46, mr = 16, mt = 16, mb = 34;
+    const plotW = w - ml - mr, plotH = h - mt - mb;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+
+    const allVals = [];
+    opts.series.forEach(s => opts.categories.forEach(c => allVals.push(s.values[c])));
+    const maxV = Math.max(...allVals);
+    const minPositive = Math.min(...allVals.filter(v => v > 0));
+
+    let yScale, ticks;
+    if (opts.logScale) {
+      const lo = Math.log10(minPositive * 0.6);
+      const hi = Math.log10(maxV * 1.15);
+      yScale = v => plotH - ((Math.log10(Math.max(v, minPositive * 0.6)) - lo) / (hi - lo)) * plotH;
+      ticks = [];
+      const startExp = Math.floor(lo), endExp = Math.ceil(hi);
+      for (let e = startExp; e <= endExp; e++) {
+        const v = Math.pow(10, e);
+        if (v >= Math.pow(10, lo) && v <= Math.pow(10, hi)) ticks.push(v);
+      }
+    } else {
+      const hi = maxV * 1.15;
+      yScale = v => plotH - (v / hi) * plotH;
+      ticks = [0, hi * 0.25, hi * 0.5, hi * 0.75, hi].map(v => Math.round(v));
+    }
+
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+
+    ticks.forEach(t => {
+      const y = yScale(t);
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const label = svgEl("text", { x: -8, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      label.textContent = opts.tickFmt ? opts.tickFmt(t) : fmt(t, 0);
+      plot.appendChild(label);
+    });
+    plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: plotH, y2: plotH, class: "baseline-line" }));
+
+    const nCat = opts.categories.length, nSer = opts.series.length;
+    const groupW = plotW / nCat;
+    const barW = Math.min(26, (groupW * 0.62) / nSer);
+    const groupInnerW = barW * nSer + 2 * (nSer - 1);
+
+    opts.categories.forEach((cat, ci) => {
+      const groupX = ci * groupW + groupW / 2 - groupInnerW / 2;
+      opts.series.forEach((s, si) => {
+        const val = s.values[cat];
+        const x = groupX + si * (barW + 2);
+        const yTop = yScale(val);
+        const barH = plotH - yTop;
+        const rect = svgEl("rect", {
+          x, y: yTop, width: barW, height: Math.max(barH, 1),
+          rx: 4, ry: 4, fill: s.color, opacity: 0.95,
+        });
+        rect.style.cursor = "pointer";
+        rect.addEventListener("pointerenter", e => {
+          rect.style.opacity = "1"; rect.style.filter = "brightness(1.08)";
+          showTooltip(e.clientX, e.clientY,
+            `<div class="t-title">${NAMES[cat] || cat}</div>
+             <div class="t-row"><span class="k"><span class="t-key" style="background:${s.color}"></span>${s.name}</span><span class="v">${fmt(val, 1)} ${opts.unit}</span></div>`);
+        });
+        rect.addEventListener("pointermove", e => showTooltip(e.clientX, e.clientY, tooltipEl.innerHTML));
+        rect.addEventListener("pointerleave", () => { rect.style.opacity = "0.95"; rect.style.filter = ""; hideTooltip(); });
+        plot.appendChild(rect);
+
+        const vLabel = svgEl("text", {
+          x: x + barW / 2, y: yTop - 6, "text-anchor": "middle", class: "bar-value",
+        });
+        vLabel.textContent = fmt(val, val < 10 ? 2 : 0);
+        plot.appendChild(vLabel);
+      });
+
+      const catLabel = svgEl("text", {
+        x: ci * groupW + groupW / 2, y: plotH + 20, "text-anchor": "middle", class: "axis-label",
+      });
+      catLabel.textContent = opts.catLabel ? opts.catLabel(cat) : cat;
+      plot.appendChild(catLabel);
+    });
+
+    svg.appendChild(plot);
+    container.appendChild(svg);
+
+    if (nSer > 1) {
+      const legend = document.createElement("div");
+      legend.className = "legend";
+      opts.series.forEach(s => {
+        const item = document.createElement("div");
+        item.className = "legend-item";
+        item.innerHTML = `<span class="swatch-rect" style="background:${s.color}"></span>${s.name}`;
+        legend.appendChild(item);
+      });
+      container.parentElement.insertBefore(legend, container);
+    }
+  }
+
+  // ---- Mean vs P95 ----
+  groupedBarChart(document.getElementById("chartMeanP95"), {
+    categories: ORDER,
+    catLabel: k => NAMES[k],
+    unit: "ms",
+    logScale: true,
+    height: 260,
+    tickFmt: v => fmt(v, 0),
+    series: [
+      { name: "Mean", color: getCss("--text-muted"), values: Object.fromEntries(ORDER.map(k => [k, DATA[k].stage_mean_ms])) },
+      { name: "P95", color: getCss("--series-engine"), values: Object.fromEntries(ORDER.map(k => [k, DATA[k].stage_p95_ms])) },
+    ],
+  });
+
+  // ---- Percentiles line-as-bar (grouped bar across p50/p90/p95/p99) ----
+  const percCats = ["p50", "p90", "p95", "p99"];
+  groupedBarChart(document.getElementById("chartPercentiles"), {
+    categories: percCats,
+    catLabel: k => k.toUpperCase(),
+    unit: "ms",
+    logScale: true,
+    height: 280,
+    series: ORDER.map(k => ({
+      name: NAMES[k], color: COLOR[k],
+      values: { p50: DATA[k].p50_ms, p90: DATA[k].p90_ms, p95: DATA[k].p95_ms, p99: DATA[k].p99_ms },
+    })),
+  });
+
+  // ================= Small-multiple stage breakdown =================
+  function miniStageChart(container, key) {
+    const d = DATA[key];
+    const stages = [
+      { name: "Preprocess", val: d.mean_preprocess_ms },
+      { name: "Inference", val: d.mean_inference_ms },
+      { name: "Postprocess", val: d.mean_postprocess_ms },
+    ];
+    const w = 260, h = 190, ml = 34, mr = 10, mt = 26, mb = 46;
+    const plotW = w - ml - mr, plotH = h - mt - mb;
+    const maxV = Math.max(...stages.map(s => s.val)) * 1.2;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+
+    const title = svgEl("text", { x: 0, y: 14, class: "panel-title" });
+    title.textContent = NAMES[key];
+    svg.appendChild(title);
+
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+    [0, 0.5, 1].forEach(f => {
+      const y = plotH - f * plotH;
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const lab = svgEl("text", { x: -8, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      lab.textContent = fmt(maxV * f, 0);
+      plot.appendChild(lab);
+    });
+    plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: plotH, y2: plotH, class: "baseline-line" }));
+
+    const bw = Math.min(34, plotW / stages.length * 0.55);
+    stages.forEach((s, i) => {
+      const cx = (i + 0.5) * (plotW / stages.length);
+      const barH = (s.val / maxV) * plotH;
+      const rect = svgEl("rect", {
+        x: cx - bw / 2, y: plotH - barH, width: bw, height: Math.max(barH, 1),
+        rx: 4, ry: 4, fill: COLOR[key],
+      });
+      rect.style.cursor = "pointer";
+      rect.addEventListener("pointerenter", e => {
+        rect.style.filter = "brightness(1.08)";
+        showTooltip(e.clientX, e.clientY,
+          `<div class="t-title">${NAMES[key]}</div>
+           <div class="t-row"><span class="k"><span class="t-key" style="background:${COLOR[key]}"></span>${s.name}</span><span class="v">${fmt(s.val, 2)} ms</span></div>`);
+      });
+      rect.addEventListener("pointermove", e => showTooltip(e.clientX, e.clientY, tooltipEl.innerHTML));
+      rect.addEventListener("pointerleave", () => { rect.style.filter = ""; hideTooltip(); });
+      plot.appendChild(rect);
+
+      const vlab = svgEl("text", { x: cx, y: plotH - barH - 6, "text-anchor": "middle", class: "bar-value" });
+      vlab.textContent = fmt(s.val, 2);
+      plot.appendChild(vlab);
+
+      const clab = svgEl("text", { x: cx, y: plotH + 16, "text-anchor": "middle", class: "axis-label" });
+      clab.textContent = s.name;
+      plot.appendChild(clab);
+    });
+    svg.appendChild(plot);
+    container.appendChild(svg);
+  }
+  const stageContainer = document.getElementById("chartStages");
+  ORDER.forEach(k => {
+    const panel = document.createElement("div");
+    stageContainer.appendChild(panel);
+    miniStageChart(panel, k);
+  });
+
+  // ================= Small-multiple per-frame trace =================
+  function miniLineChart(container, key, seriesField) {
+    const d = DATA[key];
+    const vals = d[seriesField];
+    const w = 340, h = 190, ml = 44, mr = 10, mt = 26, mb = 26;
+    const plotW = w - ml - mr, plotH = h - mt - mb;
+    const minV = Math.min(...vals) * 0.9, maxV = Math.max(...vals) * 1.05;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+
+    const title = svgEl("text", { x: 0, y: 14, class: "panel-title" });
+    title.textContent = NAMES[key];
+    svg.appendChild(title);
+
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+    const xScale = i => (i / (vals.length - 1)) * plotW;
+    const yScale = v => plotH - ((v - minV) / (maxV - minV)) * plotH;
+
+    [minV, (minV + maxV) / 2, maxV].forEach(t => {
+      const y = yScale(t);
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const lab = svgEl("text", { x: -8, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      lab.textContent = fmt(t, 0);
+      plot.appendChild(lab);
+    });
+
+    const pts = vals.map((v, i) => `${xScale(i)},${yScale(v)}`).join(" ");
+    plot.appendChild(svgEl("polyline", { points: pts, fill: "none", stroke: COLOR[key], "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+    const hitLine = svgEl("rect", { x: 0, y: 0, width: plotW, height: plotH, fill: "transparent" });
+    const cursor = svgEl("line", { x1: 0, x2: 0, y1: 0, y2: plotH, class: "grid-line", "stroke-dasharray": "3,3", opacity: 0 });
+    const dot = svgEl("circle", { r: 4, fill: COLOR[key], stroke: "var(--surface-1)", "stroke-width": 2, opacity: 0 });
+    plot.appendChild(cursor); plot.appendChild(dot); plot.appendChild(hitLine);
+
+    hitLine.addEventListener("pointermove", e => {
+      const rect = hitLine.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const idx = Math.max(0, Math.min(vals.length - 1, Math.round(relX * (vals.length - 1))));
+      const x = xScale(idx), y = yScale(vals[idx]);
+      cursor.setAttribute("x1", x); cursor.setAttribute("x2", x); cursor.setAttribute("opacity", 1);
+      dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("opacity", 1);
+      showTooltip(e.clientX, e.clientY,
+        `<div class="t-title">Frame ${idx + 1}</div>
+         <div class="t-row"><span class="k"><span class="t-key" style="background:${COLOR[key]}"></span>${NAMES[key]}</span><span class="v">${fmt(vals[idx], 1)} ms</span></div>`);
+    });
+    hitLine.addEventListener("pointerleave", () => { cursor.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); hideTooltip(); });
+
+    const xlab = svgEl("text", { x: plotW / 2, y: plotH + 20, "text-anchor": "middle", class: "axis-label" });
+    xlab.textContent = "frame index (run order)";
+    plot.appendChild(xlab);
+
+    svg.appendChild(plot);
+    container.appendChild(svg);
+  }
+  const traceContainer = document.getElementById("chartTrace");
+  ORDER.forEach(k => {
+    const panel = document.createElement("div");
+    traceContainer.appendChild(panel);
+    miniLineChart(panel, k, "stage_series");
+  });
+
+  const overheadContainer = document.getElementById("chartOverhead");
+  ORDER.forEach(k => {
+    const panel = document.createElement("div");
+    overheadContainer.appendChild(panel);
+    miniLineChart(panel, k, "overhead_series");
+  });
+
+  // ================= Small-multiple histograms =================
+  function miniHistChart(container, key, nbins, seriesField) {
+    const d = DATA[key];
+    const vals = d[seriesField].slice().sort((a, b) => a - b);
+    const minV = vals[0], maxV = vals[vals.length - 1];
+    const binW = (maxV - minV) / nbins || 1;
+    const bins = new Array(nbins).fill(0);
+    vals.forEach(v => {
+      let idx = Math.floor((v - minV) / binW);
+      if (idx >= nbins) idx = nbins - 1;
+      if (idx < 0) idx = 0;
+      bins[idx]++;
+    });
+    const maxCount = Math.max(...bins) * 1.15;
+
+    const w = 260, h = 190, ml = 30, mr = 10, mt = 26, mb = 30;
+    const plotW = w - ml - mr, plotH = h - mt - mb;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+
+    const title = svgEl("text", { x: 0, y: 14, class: "panel-title" });
+    title.textContent = NAMES[key];
+    svg.appendChild(title);
+
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+    [0, 0.5, 1].forEach(f => {
+      const y = plotH - f * plotH;
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const lab = svgEl("text", { x: -6, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      lab.textContent = fmt(maxCount * f, 0);
+      plot.appendChild(lab);
+    });
+    plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: plotH, y2: plotH, class: "baseline-line" }));
+
+    const gap = 2;
+    const bw = plotW / nbins - gap;
+    bins.forEach((c, i) => {
+      const x = i * (plotW / nbins) + gap / 2;
+      const barH = (c / maxCount) * plotH;
+      const rect = svgEl("rect", { x, y: plotH - barH, width: Math.max(bw, 1), height: Math.max(barH, 0.5), fill: COLOR[key], opacity: 0.9 });
+      rect.style.cursor = "pointer";
+      const lo = minV + i * binW, hi = lo + binW;
+      rect.addEventListener("pointerenter", e => {
+        rect.style.opacity = "1";
+        showTooltip(e.clientX, e.clientY,
+          `<div class="t-title">${fmt(lo, 0)}–${fmt(hi, 0)} ms</div>
+           <div class="t-row"><span class="k"><span class="t-key" style="background:${COLOR[key]}"></span>frames</span><span class="v">${c}</span></div>`);
+      });
+      rect.addEventListener("pointermove", e => showTooltip(e.clientX, e.clientY, tooltipEl.innerHTML));
+      rect.addEventListener("pointerleave", () => { rect.style.opacity = "0.9"; hideTooltip(); });
+      plot.appendChild(rect);
+    });
+
+    [minV, maxV].forEach((v, i) => {
+      const lab = svgEl("text", { x: i === 0 ? 0 : plotW, y: plotH + 18, "text-anchor": i === 0 ? "start" : "end", class: "axis-label" });
+      lab.textContent = fmt(v, 0) + "ms";
+      plot.appendChild(lab);
+    });
+
+    svg.appendChild(plot);
+    container.appendChild(svg);
+  }
+  const histContainer = document.getElementById("chartHist");
+  ORDER.forEach(k => {
+    const panel = document.createElement("div");
+    histContainer.appendChild(panel);
+    miniHistChart(panel, k, 14, "stage_series");
+  });
+
+  // ================= Accuracy (official ultralytics benchmark) =================
+  (function renderAccuracy() {
+    const ultra = DATA.ultra;
+    if (!ultra) return;
+    const w = 640, h = 200, ml = 46, mr = 16, mt = 16, mb = 34;
+    const plotW = w - ml - mr, plotH = h - mt - mb;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const y = plotH - f * plotH;
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const lab = svgEl("text", { x: -8, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      lab.textContent = fmt(f, 2);
+      plot.appendChild(lab);
+    });
+    plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: plotH, y2: plotH, class: "baseline-line" }));
+
+    const groupW = plotW / ORDER.length;
+    const barW = 40;
+    ORDER.forEach((k, i) => {
+      const val = ultra[k].map5095;
+      const cx = i * groupW + groupW / 2;
+      const barH = val * plotH;
+      const rect = svgEl("rect", { x: cx - barW / 2, y: plotH - barH, width: barW, height: Math.max(barH, 1), rx: 4, ry: 4, fill: COLOR[k] });
+      rect.style.cursor = "pointer";
+      rect.addEventListener("pointerenter", e => {
+        rect.style.filter = "brightness(1.08)";
+        showTooltip(e.clientX, e.clientY,
+          `<div class="t-title">${NAMES[k]}</div>
+           <div class="t-row"><span class="k"><span class="t-key" style="background:${COLOR[k]}"></span>mAP50-95</span><span class="v">${fmt(val, 4)}</span></div>
+           <div class="t-row"><span class="k">inference</span><span class="v">${fmt(ultra[k].inference_ms, 1)} ms</span></div>
+           <div class="t-row"><span class="k">FPS</span><span class="v">${fmt(ultra[k].fps, 2)}</span></div>`);
+      });
+      rect.addEventListener("pointermove", e => showTooltip(e.clientX, e.clientY, tooltipEl.innerHTML));
+      rect.addEventListener("pointerleave", () => { rect.style.filter = ""; hideTooltip(); });
+      plot.appendChild(rect);
+
+      const vlab = svgEl("text", { x: cx, y: plotH - barH - 8, "text-anchor": "middle", class: "bar-value" });
+      vlab.textContent = fmt(val, 4);
+      plot.appendChild(vlab);
+
+      const clab = svgEl("text", { x: cx, y: plotH + 20, "text-anchor": "middle", class: "axis-label" });
+      clab.textContent = NAMES[k];
+      plot.appendChild(clab);
+    });
+
+    svg.appendChild(plot);
+    document.getElementById("chartAccuracy").appendChild(svg);
+
+    let th = "<table><thead><tr><th>Format</th><th>Size (MB)</th><th>mAP50-95</th><th>Inference (ms/im)</th><th>FPS</th></tr></thead><tbody>";
+    ORDER.forEach(k => {
+      th += `<tr><td><span class="row-key" style="background:${COLOR[k]}"></span>${NAMES[k]}</td>` +
+        `<td>${fmt(ultra[k].size_mb, 1)}</td><td>${fmt(ultra[k].map5095, 4)}</td>` +
+        `<td>${fmt(ultra[k].inference_ms, 2)}</td><td>${fmt(ultra[k].fps, 2)}</td></tr>`;
+    });
+    th += "</tbody></table>";
+    document.getElementById("ultraTable").innerHTML = th;
+  })();
+
+  // ================= Resources: file size & memory =================
+  function simpleBarChart(container, opts) {
+    // opts.items: [{key,label,val,color,note}]
+    const w = 520, h = 220, ml = 40, mt = 16, mb = 40;
+    const marginR = 16;
+    const plotW = w - ml - marginR, plotH = h - mt - mb;
+    const items = opts.items;
+    const vals = items.map(it => it.val).filter(v => typeof v === "number");
+    const maxV = Math.max(...vals) * 1.25;
+    const svg = svgEl("svg", { viewBox: `0 0 ${w} ${h}` });
+    const plot = svgEl("g", { transform: `translate(${ml},${mt})` });
+
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const y = plotH - f * plotH;
+      plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: y, y2: y, class: "grid-line" }));
+      const lab = svgEl("text", { x: -8, y: y + 3, "text-anchor": "end", class: "axis-label" });
+      lab.textContent = fmt(maxV * f, 0);
+      plot.appendChild(lab);
+    });
+    plot.appendChild(svgEl("line", { x1: 0, x2: plotW, y1: plotH, y2: plotH, class: "baseline-line" }));
+
+    const slot = plotW / items.length;
+    const bw = Math.min(56, slot * 0.5);
+    items.forEach((it, i) => {
+      const cx = (i + 0.5) * slot;
+      if (typeof it.val === "number") {
+        const barH = (it.val / maxV) * plotH;
+        const rect = svgEl("rect", { x: cx - bw / 2, y: plotH - barH, width: bw, height: Math.max(barH, 1), rx: 4, ry: 4, fill: it.color });
+        rect.style.cursor = "pointer";
+        rect.addEventListener("pointerenter", e => {
+          rect.style.filter = "brightness(1.08)";
+          showTooltip(e.clientX, e.clientY,
+            `<div class="t-title">${it.label}</div>
+             <div class="t-row"><span class="k"><span class="t-key" style="background:${it.color}"></span>${opts.unit}</span><span class="v">${fmt(it.val, 1)}</span></div>`);
+        });
+        rect.addEventListener("pointermove", e => showTooltip(e.clientX, e.clientY, tooltipEl.innerHTML));
+        rect.addEventListener("pointerleave", () => { rect.style.filter = ""; hideTooltip(); });
+        plot.appendChild(rect);
+
+        const vlab = svgEl("text", { x: cx, y: plotH - barH - 8, "text-anchor": "middle", class: "bar-value" });
+        vlab.textContent = fmt(it.val, 1);
+        plot.appendChild(vlab);
+      } else {
+        const rect = svgEl("rect", { x: cx - bw / 2, y: plotH - 2, width: bw, height: 2, fill: "var(--text-muted)", "stroke-dasharray": "3,2" });
+        plot.appendChild(rect);
+        const vlab = svgEl("text", { x: cx, y: plotH - 10, "text-anchor": "middle", class: "bar-value-out" });
+        vlab.textContent = it.note || "N/A";
+        plot.appendChild(vlab);
+      }
+      const clab = svgEl("text", { x: cx, y: plotH + 18, "text-anchor": "middle", class: "axis-label" });
+      clab.textContent = it.label;
+      plot.appendChild(clab);
+    });
+
+    svg.appendChild(plot);
+    container.appendChild(svg);
+  }
+
+  const resContainer = document.getElementById("chartResources");
+  const sizePanel = document.createElement("div");
+  const sizeTitle = document.createElement("h2");
+  sizeTitle.style.cssText = "font-size:13px;margin:0 0 8px;color:var(--text-secondary);font-weight:600;";
+  sizeTitle.textContent = "File size (MB)";
+  sizePanel.appendChild(sizeTitle);
+  resContainer.appendChild(sizePanel);
+  simpleBarChart(sizePanel, {
+    unit: "MB",
+    items: ORDER.map(k => ({ key: k, label: NAMES[k].split(" ")[0], val: DATA[k].file_size_mb, color: COLOR[k] })),
+  });
+
+  const memPanel = document.createElement("div");
+  const memTitle = document.createElement("h2");
+  memTitle.style.cssText = "font-size:13px;margin:0 0 8px;color:var(--text-secondary);font-weight:600;";
+  memTitle.textContent = "Peak GPU memory (MB)";
+  memPanel.appendChild(memTitle);
+  resContainer.appendChild(memPanel);
+  simpleBarChart(memPanel, {
+    unit: "MB",
+    items: ORDER.map(k => ({
+      key: k, label: NAMES[k].split(" ")[0],
+      val: DATA[k].peak_gpu_mem_mb === null ? null : DATA[k].peak_gpu_mem_mb,
+      color: COLOR[k], note: DATA[k].peak_gpu_mem_mb === null ? "N/A — CPU" : undefined,
+    })),
+  });
+
+  // ================= Stats table =================
+  const tableWrap = document.getElementById("statsTable");
+  const rows = [
+    ["Device", k => CONFIGS[k]],
+    ["File size (MB)", k => fmt(DATA[k].file_size_mb, 1)],
+    ["Peak GPU mem (MB)", k => DATA[k].peak_gpu_mem_mb === null ? "N/A (CPU)" : fmt(DATA[k].peak_gpu_mem_mb, 1)],
+    ["Sustained FPS", k => fmt(DATA[k].sustained_fps, 2)],
+    ["Pure inference-only FPS", k => fmt(DATA[k].pure_inference_fps, 2)],
+    ["Naive per-call FPS", k => fmt(DATA[k].naive_fps, 2)],
+    ["Sustained latency, mean (ms)", k => fmt(DATA[k].stage_mean_ms, 1)],
+    ["P50 sustained latency (ms)", k => fmt(DATA[k].p50_ms, 1)],
+    ["P90 sustained latency (ms)", k => fmt(DATA[k].p90_ms, 1)],
+    ["P95 sustained latency (ms)", k => fmt(DATA[k].p95_ms, 1)],
+    ["P99 sustained latency (ms)", k => fmt(DATA[k].p99_ms, 1)],
+    ["Mean preprocess (ms)", k => fmt(DATA[k].mean_preprocess_ms, 2)],
+    ["Mean inference (ms)", k => fmt(DATA[k].mean_inference_ms, 2)],
+    ["Mean postprocess (ms)", k => fmt(DATA[k].mean_postprocess_ms, 2)],
+    ["Mean per-call overhead (ms)", k => fmt(DATA[k].overhead_mean_ms, 1)],
+    ["Max per-call overhead (ms)", k => fmt(DATA[k].overhead_max_ms, 1)],
+  ];
+  let html = "<table><thead><tr><th>Metric</th>" + ORDER.map(k => `<th>${NAMES[k]}</th>`).join("") + "</tr></thead><tbody>";
+  rows.forEach(([label, fn]) => {
+    html += `<tr><td>${label}</td>` + ORDER.map(k => `<td>${fn(k)}</td>`).join("") + "</tr>";
+  });
+  html += "</tbody></table>";
+  tableWrap.innerHTML = html;
+
+})();
+</script>

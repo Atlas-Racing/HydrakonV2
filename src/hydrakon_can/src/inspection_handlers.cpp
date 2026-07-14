@@ -71,7 +71,7 @@ void HydrakonCanInterface::handleStaticInspectionA() {
 
       this->commandCallback(msg);
 
-      rpm_request_ = std::min(200.0f, static_cast<float>(t * RPM_RAMP_RATE));
+      rpm_request_ = std::min(400.0f, static_cast<float>(t * RPM_RAMP_RATE));
 
       if (t >= 10.0) next();
       break;
@@ -134,10 +134,10 @@ void HydrakonCanInterface::handleStaticInspectionB() {
 
       this->commandCallback(msg);
 
-      rpm_request_ = std::min(50.0f, static_cast<float>(t * RPM_RAMP_RATE));
+      rpm_request_ = std::min(200.0f, static_cast<float>(t * RPM_RAMP_RATE));
       torque_ = TOTAL_MASS_ * smooth_acc * WHEEL_RADIUS_;
 
-      if (t >= 3.0) next();
+      if (t >= 10.0) next();
       break;
     }
 

@@ -89,7 +89,7 @@ class HydrakonCanInterface : public rclcpp::Node {
 
   // Parameters for ramping up hardcoded inspection
   const float STEERING_RAMP_RATE = 12.0;   // degrees per second
-  const float RPM_RAMP_RATE = 50.0;        // rpm per second
+  const float RPM_RAMP_RATE = 1000.0;        // rpm per second
   const float TORQUE_RAMP_RATE = 20.0;     // Nm per second
 
   // Variables
