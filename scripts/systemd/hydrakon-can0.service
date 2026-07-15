@@ -1,0 +1,12 @@
+[Unit]
+Description=Bring up can0 SocketCAN interface for HydrakonV2
+After=network-pre.target
+Before=hydrakon-stack.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/atlasracing/HydrakonV2/scripts/setup_can0.sh
+
+[Install]
+WantedBy=multi-user.target

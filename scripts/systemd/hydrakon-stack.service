@@ -1,0 +1,19 @@
+[Unit]
+Description=HydrakonV2 full autonomy stack (bringup + CAN + planner)
+After=network-online.target hydrakon-can0.service zed_x_daemon.service
+Wants=network-online.target
+Requires=hydrakon-can0.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=atlasracing
+Group=atlasracing
+Environment=HOME=/home/atlasracing
+WorkingDirectory=/home/atlasracing/HydrakonV2
+ExecStart=/home/atlasracing/HydrakonV2/scripts/boot_stack.sh
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

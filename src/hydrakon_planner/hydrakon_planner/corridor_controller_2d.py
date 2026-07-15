@@ -67,9 +67,9 @@ class CorridorController2D(Node):
         self.declare_parameter('steering_decay', 0.9)
         self.declare_parameter('separation_threshold_px', 50.0 * (1920.0 / 1280.0))
         self.declare_parameter('single_color_offset_px', 180.0 * (1920.0 / 1280.0))
-        self.declare_parameter('accel_nominal', 0.9)
-        self.declare_parameter('accel_ambiguous', 0.6)
-        self.declare_parameter('accel_single_color', 0.72)
+        self.declare_parameter('accel_nominal', 0.05)
+        self.declare_parameter('accel_ambiguous', 0.03)
+        self.declare_parameter('accel_single_color', 0.02)
 
         self._active_ami_states = set(self.get_parameter('active_ami_states').value)
         self._steering_gain = self.get_parameter('steering_gain').value
@@ -122,7 +122,7 @@ class CorridorController2D(Node):
                      else self._accel_ambiguous)
         elif y is not None or b is not None:
             single = y if y is not None else b
-            offset = self._single_offset_px if single is y else -self._single_offset_px
+            offset = self._single_offset_px if single is b else -self._single_offset_px
             midpoint_x = _bbox_center_x(single) + offset
             accel = self._accel_single
         else:

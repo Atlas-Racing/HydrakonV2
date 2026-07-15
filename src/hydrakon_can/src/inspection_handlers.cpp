@@ -195,7 +195,7 @@ void HydrakonCanInterface::handleAutonomousDemo() {
 
     case 4:  // Brake to stop
       rpm_request_ = 0.0f; torque_ = 0.0f; braking_ = 60.0f;
-      if (t >= 3.0) next();
+      if (t >= 8.0) next();
       break;
 
     case 5:  // Re-accelerate to 15kph again
