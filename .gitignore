@@ -66,3 +66,6 @@ src/hydrakon_can/include/hydrakon_can/FS-AI_API/**/*.a
 src/hydrakon_perception/hydrakon_perception/models_benchmark*/bench_subset/
 src/hydrakon_perception/hydrakon_perception/models_benchmark*/*.log
 src/hydrakon_perception/hydrakon_perception/models_benchmark*/*.json
+.vscode/browse.vc.db-wal
+.vscode/browse.vc.db-shm
+.vscode/browse.vc.db
