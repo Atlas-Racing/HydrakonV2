@@ -1,0 +1,21 @@
+{
+    "ROS2.distro": "humble",
+    "python.autoComplete.extraPaths": [
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/build/hydrakon_perception",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_perception/lib/python3.10/site-packages",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_can/local/lib/python3.10/dist-packages",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/build/hydrakon_bringup",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_bringup/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/build/hydrakon_perception",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_perception/lib/python3.10/site-packages",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_can/local/lib/python3.10/dist-packages",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/build/hydrakon_bringup",
+        "/home/abdul/Documents/CARLA_2025/HydrakonV2/install/hydrakon_bringup/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
