@@ -129,7 +129,7 @@ class CorridorController2D(Node):
                      else self._accel_ambiguous)
         elif y is not None or b is not None:
             single = y if y is not None else b
-            offset = self._single_offset_px if single is b else -self._single_offset_px
+            offset = -self._single_offset_px if single is b else self._single_offset_px
             midpoint_x = _bbox_center_x(single) + offset
             accel = self._accel_single
         else:
