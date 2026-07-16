@@ -6,6 +6,7 @@ of vision_msgs/Detection2DArray at the old, stale 1280x720 assumption. Matches
 cones by label string, not numeric class id (cone_detection.yaml's class order
 does not match the old YELLOW=0/BLUE=1/... ids).
 """
+import math
 import re
 
 import rclpy
@@ -32,7 +33,10 @@ TRACKING_STATE_SEARCHING = 2
 IMAGE_WIDTH_PX = 1920.0
 IMAGE_CENTER_X_PX = IMAGE_WIDTH_PX / 2.0
 
-MAX_STEERING_RAD = 0.4
+# hydrakon_can.cpp truncates AI2VCU_STEER_ANGLE_REQUEST_deg to MAX_STEERING_ANGLE_DEG_
+# (21.0, see hydrakon_can.hpp) regardless of what we send, so match that limit here
+# rather than clipping to some other value at this layer.
+MAX_STEERING_RAD = math.radians(21.0)
 
 
 def _bbox_center_x(obj) -> float:
@@ -61,15 +65,18 @@ class CorridorController2D(Node):
         # Old constant (0.003) was tuned for a 1280px-wide image; the same physical
         # lateral offset spans proportionally more pixels at 1920px, so this is
         # rescaled by 1280/1920 as a first-order correction only - the old value
-        # came from a different camera/lens entirely and needs on-vehicle retuning.
-        self.declare_parameter('steering_gain', 0.003 * (1280.0 / 1920.0))
+        # came from a different camera/lens entirely and needed on-vehicle retuning.
+        # On-vehicle testing showed steering barely turning for normal corridor
+        # offsets, so bumped 3x from the rescaled-only value; keep tuning via the
+        # 'steering_gain' parameter (ros2 param set) rather than editing this default.
+        self.declare_parameter('steering_gain', 0.006 * (1280.0 / 1920.0) * 3.0)
         self.declare_parameter('midpoint_smoothing', 0.7)
         self.declare_parameter('steering_decay', 0.9)
         self.declare_parameter('separation_threshold_px', 50.0 * (1920.0 / 1280.0))
         self.declare_parameter('single_color_offset_px', 180.0 * (1920.0 / 1280.0))
-        self.declare_parameter('accel_nominal', 0.05)
-        self.declare_parameter('accel_ambiguous', 0.03)
-        self.declare_parameter('accel_single_color', 0.02)
+        self.declare_parameter('accel_nominal', 0.6)
+        self.declare_parameter('accel_ambiguous', 0.55)
+        self.declare_parameter('accel_single_color', 0.3)
 
         self._active_ami_states = set(self.get_parameter('active_ami_states').value)
         self._steering_gain = self.get_parameter('steering_gain').value

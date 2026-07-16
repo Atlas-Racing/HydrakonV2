@@ -3,11 +3,25 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
+
+
+def rosbag_record_action(launch_name):
+    return ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            'mkdir -p ~/rosbags && exec ros2 bag record -a --storage mcap '
+            f'-o ~/rosbags/{launch_name}_$(date +%Y%m%d_%H%M%S)'
+        ],
+        prefix='setsid',
+        output='screen',
+        respawn=True,
+        respawn_delay=2.0,
+    )
 
 
 def generate_launch_description():
@@ -77,4 +91,5 @@ def generate_launch_description():
         cone_marker_publisher_node,
         greenwave_monitor_node,
         greenwave_auto_discovery_node,
+        # rosbag_record_action('hydrakon_bringup'),
     ])

@@ -1,7 +1,21 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+
+def rosbag_record_action(launch_name):
+    return ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            'mkdir -p ~/rosbags && exec ros2 bag record -a --storage mcap '
+            f'-o ~/rosbags/{launch_name}_$(date +%Y%m%d_%H%M%S)'
+        ],
+        prefix='setsid',
+        output='screen',
+        respawn=True,
+        respawn_delay=2.0,
+    )
 
 
 def launch_setup(context, *args, **kwargs):
@@ -36,4 +50,5 @@ def generate_launch_description():
             description='Comma-separated AMI mission names this controller is active for.',
         ),
         OpaqueFunction(function=launch_setup),
+        # rosbag_record_action('corridor_controller'),
     ])

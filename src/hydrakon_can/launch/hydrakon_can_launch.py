@@ -2,6 +2,20 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess, TimerAction
 from launch_ros.actions import Node
 
+
+def rosbag_record_action(launch_name):
+    return ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            'mkdir -p ~/rosbags && exec ros2 bag record -a --storage mcap '
+            f'-o ~/rosbags/{launch_name}_$(date +%Y%m%d_%H%M%S)'
+        ],
+        prefix='setsid',
+        output='screen',
+        respawn=True,
+        respawn_delay=2.0,
+    )
+
 def generate_launch_description():
     node = Node(
         package="hydrakon_can",
@@ -45,4 +59,5 @@ def generate_launch_description():
     ld = LaunchDescription()
     ld.add_action(node)
     ld.add_action(delayed_driving_flag_pub)
+    # ld.add_action(rosbag_record_action('hydrakon_can'))
     return ld
