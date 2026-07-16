@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'corridor_controller_2d = hydrakon_planner.corridor_controller_2d:main',
             'corridor_controller_3d = hydrakon_planner.corridor_controller_3d:main',
+            'skidpad_controller = hydrakon_planner.skidpad_controller:main',
         ],
     },
 )

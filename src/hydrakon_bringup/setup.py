@@ -14,6 +14,7 @@ setup(
             'launch/zedx_bringup.py',
             'launch/hydrakon_bringup.py',
             'launch/corridor_controller_launch.py',
+            'launch/skidpad_controller_launch.py',
         ]),
     ],
     install_requires=['setuptools'],

@@ -95,6 +95,13 @@ ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=2d  
   ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=3d active_ami_states:=SKIDPAD
   ```
 
+**Skidpad controller** (separate terminal, camera + object detection already running):
+```bash
+ros2 launch hydrakon_bringup skidpad_controller_launch.py
+```
+- Dedicated phase-state-machine controller (WARMUP → ENTRY → RIGHT → LEFT → EXIT → STOPPING → DONE), not the generic corridor follower — see below.
+- `active_ami_states` (default `SKIDPAD`): same gating pattern as the corridor controller.
+
 There is no single top-level launch file combining bringup + CAN + planner yet — run them in separate terminals.
 
 **Full stack, four terminals:**
@@ -108,6 +115,7 @@ ros2 launch hydrakon_bringup corridor_controller_launch.py controller_mode:=2d
 # 4 (optional, visualization)
 ros2 launch zed_display_rviz2 display_zed_cam.launch.py camera_model:=zedx start_zed_node:=False
 ```
+You can add `skidpad_controller_launch.py` as an additional terminal alongside terminal 3 rather than swapping it in — both self-gate on `/hydrakon_can/state_str` and only one ever actually publishes at a time, since their default `active_ami_states` (`TRACKDRIVE,AUTOCROSS` vs `SKIDPAD`) don't overlap. (This is unlike `corridor_controller_2d` vs `_3d` above, which share the same default gate and *would* genuinely fight if both were launched.)
 Each terminal needs the sourcing from the top of this file (`ROS Humble` + `zed_ws` are already automatic via `.bashrc`; still run `source ~/HydrakonV2/install/local_setup.bash` in each).
 
 ## Perception: cone detection
@@ -132,11 +140,19 @@ Each terminal needs the sourcing from the top of this file (`ROS Humble` + `zed_
   - `corridor_controller_3d` — finds the closest yellow/blue cone by real forward distance (`obj.position`), steers toward the metric midpoint via `atan2`. No pixel-space assumptions.
 - Both subscribe to `/hydrakon_can/state_str` and `/zed/zed_node/obj_det/objects`, publish `ackermann_msgs/msg/AckermannDriveStamped` on `/hydrakon_can/command`, and only do so while gated on an active AMI mission (`active_ami_states` parameter, default `TRACKDRIVE,AUTOCROSS`) — required, since `hydrakon_can`'s EBS watchdog trips if `/hydrakon_can/command` goes silent for >0.5s while driving, so both controllers publish on every detection callback even with zero cones (decayed steering, zero acceleration).
 - **Nothing in here is tuned.** `steering_gain`, separation thresholds, and curvature offsets are carried over from last year's constants with a first-order resolution rescale (1280→1920px) — real values need on-track testing. See code comments in `hydrakon_planner/corridor_controller_2d.py` / `_3d.py` for the exact rationale on each constant.
-- Not implemented: lap counting, mission completion/stop logic, closed-loop speed control (acceleration is one of 4 fixed tiers, not a target-speed loop), fault handling on sustained perception loss (currently just decays to zero rather than requesting EBS), and Skidpad/Acceleration mission controllers.
+- Not implemented: lap counting, mission completion/stop logic, closed-loop speed control (acceleration is one of 4 fixed tiers, not a target-speed loop), fault handling on sustained perception loss (currently just decays to zero rather than requesting EBS).
+
+## Planning: skidpad controller
+
+- `hydrakon_planner/skidpad_controller.py`, entry point `skidpad_controller` — ported from last year's CarMaker-only `skidpad_node.py` onto the same real-vehicle interfaces the corridor controllers use: `zed_msgs/msg/ObjectsStamped` for cones, `ackermann_msgs/msg/AckermannDriveStamped` on `/hydrakon_can/command` for output, `/hydrakon_can/state_str` + `active_ami_states` (default `SKIDPAD`) for AMI gating, and `/hydrakon_can/imu` + `/hydrakon_can/wheel_speed` in place of the old `/carmaker/*` topics.
+- Unlike the corridor controllers, this is a full phase state machine (`WARMUP → ENTRY → RIGHT → LEFT → EXIT → STOPPING → DONE`) driven by a fixed 20 Hz timer (not the object-detection callback), with closed-loop speed PID, an angle-aware opposite-circle cone mask, an inner-cone safety carve-out, and potential-field obstacle avoidance. See the module/class docstrings in `skidpad_controller.py` for the full v1/v2 failure-mode history behind those design choices.
+- `drive.acceleration` here is a single signed PID output (clipped to `[-max_brake, max_gas]`), fed straight through to `hydrakon_can`'s accel/brake interpretation — not the corridor controllers' 4 fixed accel tiers.
+- `STOPPING` (`stop_delay_sec`, default `1.0`s) keeps the car driving straight for that long after clearing the exit gate before `DONE` actually brakes — same shape as `hydrakon_can.cpp`'s `handleStaticInspectionA` (timed stage after the last driving action). On entering `DONE`, it publishes `std_msgs/msg/Bool(true)` on `/hydrakon_can/is_mission_completed` every tick, the same topic `hydrakon_can.cpp`'s `flagCallback` already consumes to set `mission_complete_` (reported to the VCU as `MISSION_FINISHED`).
+- Also not tuned on real hardware yet (inherited from the CarMaker-era constants) — same caveat as the corridor controllers above.
 
 ## Not yet implemented
 
-- Lap counting, mission completion, and closed-loop speed control in the planner (see above).
-- Skidpad and Acceleration event controllers — only Trackdrive/Autocross are covered.
+- Lap counting, mission completion, and closed-loop speed control in the corridor (Trackdrive/Autocross) planner (see above) — the skidpad controller does have closed-loop speed control and its own phase/completion logic.
+- Acceleration event controller.
 - A single top-level launch combining `hydrakon_bringup` + `hydrakon_can` + `hydrakon_planner`.
 - Automated tests for the planner's steering/accel geometry (currently only ament boilerplate — copyright/flake8/pep257 — no logic tests).
